@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Users</title>
+    <style>
+        body {
+            background-color: darkslategray;
+            color: lightgray;
+            font-size: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        a {
+            color: gold;
+            text-decoration: none;
+            background-color: black;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+        }
+
+    </style>
+</head>
+<body class="container">
+<div th:if="${ not#lists.isEmpty(users)}">
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>E-mail</th>
+            <th>Age</th>
+            <th>Action</th>
+        </tr>
+        <tr th:each="user : ${users}">
+            <td th:text="${user.name}"></td>
+            <td th:text="${user.email}"></td>
+            <td th:text="${user.age}"></td>
+            <td><a th:href="@{/edit(id=${user.id})}">change</a></td>
+        </tr>
+    </table>
+</div>
+<br>
+<a th:href="@{/add}">Add User</a>
+</body>
+</html>
