@@ -40,7 +40,6 @@
             <th>E-mail</th>
             <th>Age</th>
             <th>Username</th>
-            <th>password</th>
             <th>Roles</th>
         </tr>
         <tr>
@@ -48,7 +47,6 @@
             <td th:text="${userHome.email}"></td>
             <td th:text="${userHome.age}"></td>
             <td th:text="${userHome.username}"></td>
-            <td th:text="${userHome.password}"></td>
             <td>
                 <ul>
                     <li th:each="role : ${userHome.roles}" th:text="${role.name}"></li>
