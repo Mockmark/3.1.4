@@ -45,4 +45,9 @@ public class UserService implements ServiceProv {
         userDao.deleteById(id);
     }
 
+    @Override
+    public boolean existsByUsername(String username) {
+        return userDao.existsByUsername(username);
+    }
+
 }

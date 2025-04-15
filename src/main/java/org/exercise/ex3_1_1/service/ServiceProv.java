@@ -1,6 +1,7 @@
 package org.exercise.ex3_1_1.service;
 
 import org.exercise.ex3_1_1.model.User;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -10,4 +11,5 @@ public interface ServiceProv {
     User getUserById(long id);
     void updateUser(User user);
     void deleteUser(long id);
+    boolean existsByUsername(@Param("username") String username);
 }

@@ -14,4 +14,6 @@ public interface DataAccess extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.id = :id")
     User findUserWithRolesById(@Param("id") long id);
+
+    boolean existsByUsername(@Param("username") String username);
 }

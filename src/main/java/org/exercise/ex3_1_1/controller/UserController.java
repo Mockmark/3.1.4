@@ -41,7 +41,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/index")
-    public String saveUser(@ModelAttribute("user") User user) {
+    public String saveUser(@ModelAttribute("user") User user, ModelMap model) {
         Set<Role> fullRoles = user.getRoles().stream()
                 .map(role -> roleService.findById(role.getId()))
                 .collect(Collectors.toSet());
@@ -49,6 +49,14 @@ public class UserController {
         user.setRoles(fullRoles);
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        if (userService.existsByUsername(user.getUsername())) {
+            model.addAttribute("errorMessage",
+                    "Username already exists.");
+            model.addAttribute("user", user);
+            model.addAttribute("allRoles", roleService.findAll());
+            return "redirect:/admin/index";
+        }
 
         userService.addUser(user);
         return "redirect:/admin/index";
@@ -69,7 +77,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/edit")
-    public String updateUser(@ModelAttribute("userToEdit") User user) {
+    public String updateUser(@ModelAttribute("userToEdit") User user, ModelMap model) {
         Set<Role> fullRoles = user.getRoles().stream()
                 .map(role -> roleService.findById(role.getId()))
                 .collect(Collectors.toSet());
@@ -78,6 +86,14 @@ public class UserController {
 
         if (!user.getPassword().equals(existingUser.getPassword())) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+
+        if (userService.existsByUsername(user.getUsername())) {
+            model.addAttribute("errorMessage",
+                    "Username already exists.");
+            model.addAttribute("user", user);
+            model.addAttribute("allRoles", roleService.findAll());
+            return "redirect:/admin/index";
         }
 
         userService.updateUser(user);
