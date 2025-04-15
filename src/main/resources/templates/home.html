@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Home</title>
@@ -31,7 +31,38 @@
 
 </style>
 <body class="container">
-<h1>Welcome</h1>
+<h1>Welcome, <span th:text="${userHome.name}"></span>!</h1>
+
+<div th:if="${userHome != null}">
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>E-mail</th>
+            <th>Age</th>
+            <th>Username</th>
+            <th>password</th>
+            <th>Roles</th>
+        </tr>
+        <tr>
+            <td th:text="${userHome.name}"></td>
+            <td th:text="${userHome.email}"></td>
+            <td th:text="${userHome.age}"></td>
+            <td th:text="${userHome.username}"></td>
+            <td th:text="${userHome.password}"></td>
+            <td>
+                <ul>
+                    <li th:each="role : ${userHome.roles}" th:text="${role.name}"></li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<br>
+
+<form th:action="@{/logout}" method="post">
+    <input type="submit" value="Logout"/>
+</form>
 
 </body>
 </html>

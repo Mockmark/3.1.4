@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Edit User</title>
@@ -77,6 +77,12 @@
 
 <form method="POST" th:action="@{/admin/delete(id=${userToEdit.id})}">
     <input type="submit" value="Delete User">
+</form>
+
+<br>
+
+<form th:action="@{/logout}" method="post">
+    <input type="submit" value="Logout"/>
 </form>
 
 </body>

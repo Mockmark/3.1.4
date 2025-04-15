@@ -18,7 +18,6 @@ public class UserService implements ServiceProv {
     @Override
     @Transactional
     public void addUser(User user) {
-
         userDao.save(user);
     }
 

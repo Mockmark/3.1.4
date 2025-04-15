@@ -69,7 +69,12 @@ public class UserController {
                 .map(role -> roleService.findById(role.getId()))
                 .collect(Collectors.toSet());
         user.setRoles(fullRoles);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User existingUser = userService.getUserById(user.getId());
+
+        if (!user.getPassword().equals(existingUser.getPassword())) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+
         userService.updateUser(user);
         return "redirect:/admin/index";
     }
