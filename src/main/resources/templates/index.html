@@ -31,6 +31,9 @@
     </style>
 </head>
 <body class="container">
+<h1 th:if="${userHomeAdm != null}">
+    Welcome, <span th:text="${userHomeAdm.name}"></span>!
+</h1>
 <div th:if="${ not#lists.isEmpty(users)}">
     <table>
         <tr>
