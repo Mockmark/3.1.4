@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService implements ServiceProv {
@@ -48,6 +49,11 @@ public class UserService implements ServiceProv {
     @Override
     public boolean existsByUsername(String username) {
         return userDao.existsByUsername(username);
+    }
+
+    @Override
+    public Optional<User> findByUsername(String username) {
+        return userDao.findByUsername(username);
     }
 
 }

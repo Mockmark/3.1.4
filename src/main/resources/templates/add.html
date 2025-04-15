@@ -31,6 +31,8 @@
     </style>
 </head>
 <body class="container">
+<a th:href="@{/admin/index}">Return</a>
+<br>
 <form th:method="POST" th:action="@{/admin/index}" th:object="${user}">
 
     <label for="name">Name</label>

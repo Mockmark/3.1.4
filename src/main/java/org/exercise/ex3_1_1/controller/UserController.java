@@ -11,6 +11,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -88,9 +89,10 @@ public class UserController {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
 
-        if (userService.existsByUsername(user.getUsername())) {
-            model.addAttribute("errorMessage",
-                    "Username already exists.");
+        Optional<User> userWithSameUsername = userService.findByUsername(user.getUsername());
+
+        if (userWithSameUsername.isPresent() && !(userWithSameUsername.get().getId() == (user.getId()))) {
+            model.addAttribute("errorMessage", "Username already exists.");
             model.addAttribute("user", user);
             model.addAttribute("allRoles", roleService.findAll());
             return "edit";

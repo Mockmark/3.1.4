@@ -4,6 +4,7 @@ import org.exercise.ex3_1_1.model.User;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ServiceProv {
     void addUser(User user);
@@ -12,4 +13,6 @@ public interface ServiceProv {
     void updateUser(User user);
     void deleteUser(long id);
     boolean existsByUsername(@Param("username") String username);
+
+    Optional<User> findByUsername(String username);
 }
