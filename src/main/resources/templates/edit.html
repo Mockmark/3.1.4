@@ -73,6 +73,10 @@
 
 </form>
 
+<div th:if="${errorMessage}" style="color: red;">
+    <p th:text="${errorMessage}"></p>
+</div>
+
 <br>
 
 <form method="POST" th:action="@{/admin/delete(id=${userToEdit.id})}">

@@ -55,7 +55,7 @@ public class UserController {
                     "Username already exists.");
             model.addAttribute("user", user);
             model.addAttribute("allRoles", roleService.findAll());
-            return "redirect:/admin/index";
+            return "add";
         }
 
         userService.addUser(user);
@@ -93,7 +93,7 @@ public class UserController {
                     "Username already exists.");
             model.addAttribute("user", user);
             model.addAttribute("allRoles", roleService.findAll());
-            return "redirect:/admin/index";
+            return "edit";
         }
 
         userService.updateUser(user);
