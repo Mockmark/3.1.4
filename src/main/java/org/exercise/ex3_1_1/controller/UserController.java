@@ -28,6 +28,11 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @GetMapping(value = "")
+    public String redirectToIndex() {
+        return "redirect:/admin/index";
+    }
+
     @GetMapping(value = "/index")
     public String index(ModelMap model) {
         List<User> users = userService.index();
