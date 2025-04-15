@@ -31,7 +31,7 @@
     </style>
 </head>
 <body class="container">
-<form th:method="POST" th:action="@{/index}" th:object="${user}">
+<form th:method="POST" th:action="@{/admin/index}" th:object="${user}">
 
     <label for="name">Name</label>
     <input type="text" th:field="*{name}" id="name" name="name" placeholder="Enter your name">
@@ -45,6 +45,25 @@
 
     <label for="age">Age</label>
     <input type="number" th:field="*{age}" id="age" name="age" placeholder="Enter your age">
+
+    <br>
+
+    <label for="username">Username</label>
+    <input type="text" th:field="*{username}" id="username" name="username" placeholder="Enter your username">
+
+    <br>
+
+    <label for="password">Password</label>
+    <input type="text" th:field="*{password}" id="password" name="password" placeholder="Enter your password">
+
+    <br>
+
+    <label for="roles">Roles</label>
+    <select multiple th:field="*{roles}" id="roles" name="roles">
+        <option th:each="role : ${allRoles}"
+                th:value="${role.id}"
+                th:text="${role.name}">Role Name</option>
+    </select>
 
     <br>
 

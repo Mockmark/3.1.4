@@ -43,11 +43,11 @@
             <td th:text="${user.name}"></td>
             <td th:text="${user.email}"></td>
             <td th:text="${user.age}"></td>
-            <td><a th:href="@{/edit(id=${user.id})}">change</a></td>
+            <td><a th:href="@{/admin/edit(id=${user.id})}">change</a></td>
         </tr>
     </table>
 </div>
 <br>
-<a th:href="@{/add}">Add User</a>
+<a th:href="@{/admin/add}">Add User</a>
 </body>
 </html>

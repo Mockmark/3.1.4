@@ -31,7 +31,7 @@
     </style>
 </head>
 <body class="container">
-<form th:method="POST" th:action="@{/edit}" th:object="${userToEdit}">
+<form th:method="POST" th:action="@{/admin/edit}" th:object="${userToEdit}">
 
     <input type="hidden" th:field="*{id}"/>
 
@@ -50,13 +50,32 @@
 
     <br>
 
+    <label for="username">Username</label>
+    <input type="text" th:field="*{username}" id="username" name="username" placeholder="Enter your username">
+
+    <br>
+
+    <label for="password">Password</label>
+    <input type="text" th:field="*{password}" id="password" name="password" placeholder="Enter new password">
+
+    <br>
+
+    <label for="roles">Roles</label>
+    <select multiple th:field="*{roles}" id="roles">
+        <option th:each="role : ${allRoles}"
+                th:value="${role.id}"
+                th:text="${role.name}">Role Name</option>
+    </select>
+
+    <br>
+
     <input type="submit" value="Accept Changes">
 
 </form>
 
 <br>
 
-<form method="post" th:action="@{/delete(id=${userToEdit.id})}">
+<form method="POST" th:action="@{/admin/delete(id=${userToEdit.id})}">
     <input type="submit" value="Delete User">
 </form>
 
