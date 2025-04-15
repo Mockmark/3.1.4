@@ -47,11 +47,13 @@ public class UserService implements ServiceProv {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existsByUsername(String username) {
         return userDao.existsByUsername(username);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<User> findByUsername(String username) {
         return userDao.findByUsername(username);
     }
