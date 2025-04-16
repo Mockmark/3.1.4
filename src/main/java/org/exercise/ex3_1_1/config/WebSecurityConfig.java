@@ -40,7 +40,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/", "/login", "/error").permitAll()
                         // Secure the /admin/** path, requiring the ADMIN role
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/user/**").hasRole("USER")
+                        .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
                         // Any other request must be authenticated
                         .anyRequest().authenticated()
                 )
