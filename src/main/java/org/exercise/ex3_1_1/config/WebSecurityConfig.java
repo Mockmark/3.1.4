@@ -24,50 +24,34 @@ public class WebSecurityConfig {
     public WebSecurityConfig(CustomLoginSuccessHandler successHandler) {
         this.successHandler = successHandler;
     }
-    // 1. Define the PasswordEncoder Bean (remains the same)
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 2. Define the SecurityFilterChain Bean (replaces configure(HttpSecurity http))
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Configure authorization rules (matched from original)
                 .authorizeHttpRequests(authorize -> authorize
-                        // Permit access to static resources, home, registration, error and the login page itself
                         .requestMatchers("/", "/login", "/error").permitAll()
-                        // Secure the /admin/** path, requiring the ADMIN role
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
-                        // Any other request must be authenticated
                         .anyRequest().authenticated()
                 )
-                // Configure form-based login (matched from original)
                 .formLogin(formLogin -> formLogin
-                        .loginPage("/login") // Specify the custom login page URL
-                        // Note: The login form uses name="username", which matches the UserDetailsServiceImpl's
-                        // expectation and the User entity's field.
-                        // No need for .usernameParameter("email") unless you change the login field name.
-                        // Optional: Specify the URL to redirect to upon successful login
-                        // .defaultSuccessUrl("/admin/index", true) // Good practice for role-based landing pages
+                        .loginPage("/login")
                         .successHandler(successHandler)
-                        .permitAll() // Allow access to the login page for everyone
+                        .permitAll()
                 )
-                // Configure logout (matched from original)
                 .logout(logout -> logout
-                        .logoutUrl("/logout") // Default URL that triggers logout
-                        .logoutSuccessUrl("/login?logout") // Redirect after successful logout to login page with a param
-                        .permitAll() // Allow access to the logout functionality for everyone
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll()
                 );
-        // CSRF protection is enabled by default, which is recommended.
-
         return http.build();
     }
 
-    // No longer need to inject UserDetailsService or override configure(AuthenticationManagerBuilder)
-    // Spring Boot automatically wires the UserDetailsServiceImpl and PasswordEncoder beans.
     @Bean
     public CommandLineRunner init(DataAccess userRepository, RoleRepository roleRepository, PasswordEncoder encoder) {
         return args -> {
