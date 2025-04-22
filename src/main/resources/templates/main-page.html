@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin & User Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+        }
+        .tab-content {
+            padding-top: 1rem;
+        }
+        .delete-form {
+            display: inline-block;
+            margin: 0;
+        }
+        /* Ensure sidebar pills look clickable */
+        .sidebar .nav-pills .nav-link {
+            cursor: pointer;
+        }
+        /* Adjust padding/margins if needed */
+        main {
+            padding-top: 1rem; /* Add some space below navbar */
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top"> <div class="container-fluid">
+    <a class="navbar-brand" href="#">Combined Panel</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item d-flex align-items-center" th:if="${userHomeAdm != null}">
+                         <span class="navbar-text me-3">
+                            <span th:text="${userHomeAdm.email}"></span> with roles: <span th:text="${#strings.listJoin(userHomeAdm.roles.![name], ', ')}"></span>
+                         </span>
+            </li>
+            <li class="nav-item">
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="btn btn-outline-danger">Logout</button>
+                </form>
+            </li>
+        </ul>
+    </div>
+</div>
+</nav>
+
+<div style="padding-top: 56px;"> <div class="container-fluid">
+    <div class="row">
+
+        <div class="col-md-3 col-lg-2 px-0">
+            <div class="d-flex flex-column flex-shrink-0 p-3 bg-light sidebar">
+                <hr>
+                <ul class="nav nav-pills flex-column mb-auto" id="sidebarTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="admin-tab-link" data-bs-toggle="pill" href="#admin-view" role="tab" aria-controls="admin-view" aria-selected="true">
+                            Admin
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="user-tab-link" data-bs-toggle="pill" href="#user-view" role="tab" aria-controls="user-view" aria-selected="false">
+                            User
+                        </a>
+                    </li>
+                </ul>
+                <hr>
+            </div>
+        </div>
+
+        <main class="col-md-9 col-lg-10 px-md-4">
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="tab-content" id="sidebarTabsContent">
+
+                <div class="tab-pane fade show active" id="admin-view" role="tabpanel" aria-labelledby="admin-tab-link">
+                    <h1 class="mb-4">Admin panel</h1>
+
+                    <ul class="nav nav-tabs" id="adminContentTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="users-table-subtab" data-bs-toggle="tab" data-bs-target="#usersTableTabContent" type="button" role="tab" aria-controls="usersTableTabContent" aria-selected="true">Users table</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="new-user-subtab" data-bs-toggle="tab" data-bs-target="#newUserTabContent" type="button" role="tab" aria-controls="newUserTabContent" aria-selected="false">New User</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="adminContentTabsContent">
+                        <div class="tab-pane fade show active" id="usersTableTabContent" role="tabpanel" aria-labelledby="users-table-subtab">
+                            <div th:if="${ not #lists.isEmpty(users)}" class="mt-3">
+                                <table class="table table-bordered table-striped table-light">
+                                    <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>First Name</th>
+                                        <th>Age</th>
+                                        <th>Email</th>
+                                        <th>Username</th> <th>Role</th>
+                                        <th>Edit</th>
+                                        <th>Delete</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="user : ${users}">
+                                        <td th:text="${user.id}"></td>
+                                        <td th:text="${user.name}"></td>
+                                        <td th:text="${user.age}"></td>
+                                        <td th:text="${user.email}"></td>
+                                        <td th:text="${user.username}"></td> <td>
+                                            <span th:each="role, iterStat : ${user.roles}">
+                                                 <span th:text="${role.name}">Role</span><th:block th:if="${!iterStat.last}">, </th:block>
+                                             </span>
+                                    </td>
+                                        <td><a th:href="@{/admin/edit(id=${user.id})}" class="btn btn-info btn-sm">Edit</a></td>
+                                        <td>
+                                            <form th:action="@{/admin/delete(id=${user.id})}" method="post" th:attr="onsubmit='return confirm(\'Are you sure you want to delete user \' + \'' + ${user.name} + '\' (\' + \'' + ${user.email} + '\')?\');'" class="delete-form">
+                                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div th:if="${#lists.isEmpty(users)}" class="alert alert-info mt-3">
+                                No users found.
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="newUserTabContent" role="tabpanel" aria-labelledby="new-user-subtab">
+                            <div class="container py-4">
+                                <h2>Add New User</h2>
+                                <form th:method="POST" th:action="@{/admin/save}" th:object="${newUser}">
+                                    <div class="mb-3">
+                                        <label for="newName" class="form-label">First Name</label>
+                                        <input type="text" th:field="*{name}" id="newName" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="newEmail" class="form-label">Email</label>
+                                        <input type="email" th:field="*{email}" id="newEmail" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="newAge" class="form-label">Age</label>
+                                        <input type="number" th:field="*{age}" id="newAge" class="form-control" min="0">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="newUsername" class="form-label">Username</label>
+                                        <input type="text" th:field="*{username}" id="newUsername" class="form-control" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="newPassword" class="form-label">Password</label>
+                                        <input type="password" th:field="*{password}" id="newPassword" class="form-control" required> </div>
+                                    <div class="mb-3">
+                                        <label for="newRoles" class="form-label">Roles</label>
+                                        <select multiple th:field="*{roles}" id="newRoles" class="form-select" required>
+                                            <option th:each="role : ${allRoles}" th:value="${role.id}" th:text="${role.name}">Role</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-success">Add User</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div> </div> <div class="tab-pane fade" id="user-view" role="tabpanel" aria-labelledby="user-tab-link">
+                <h1 class="mb-4">User Information</h1>
+                <div th:if="${userHomeAdm != null}">
+                    <h2>Welcome, <span th:text="${userHomeAdm.name}">User</span>!</h2>
+                    <table class="table table-bordered table-striped table-light"> <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>First Name</th>
+                        <th>Age</th>
+                        <th>Email</th>
+                        <th>Username</th>
+                        <th>Roles</th>
+                    </tr>
+                    </thead>
+                        <tbody>
+                        <tr>
+                            <td th:text="${userHomeAdm.id}"></td>
+                            <td th:text="${userHomeAdm.name}"></td>
+                            <td th:text="${userHomeAdm.age}"></td>
+                            <td th:text="${userHomeAdm.email}"></td>
+                            <td th:text="${userHomeAdm.username}"></td>
+                            <td>
+                                    <span th:each="role, iterStat : ${userHomeAdm.roles}">
+                                         <span th:text="${role.name}">Role</span><th:block th:if="${!iterStat.last}">, </th:block>
+                                     </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div th:if="${userHomeAdm == null}" class="alert alert-warning">
+                    User details not available.
+                </div>
+            </div> </div> </main>
+    </div>
+</div>
+
+</div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

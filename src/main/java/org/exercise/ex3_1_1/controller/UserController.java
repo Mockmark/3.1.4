@@ -10,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes; // Import RedirectAttributes
 
 import java.util.List;
 import java.util.Optional;
@@ -18,12 +19,17 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
+// If ONLY Admins should see this combined page, keep this.
+// If Users should also see it (but only the User tab), you'd need a more general mapping
+// and potentially move the @PreAuthorize inside methods or use method-level security.
+// For now, assuming only Admins access this combined view:
 @PreAuthorize("hasRole('ADMIN')")
 public class UserController {
     ServiceProv userService;
     RoleService roleService;
     PasswordEncoder passwordEncoder;
 
+    // Constructor injection
     UserController(ServiceProv userService, RoleService roleService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.roleService = roleService;
@@ -32,119 +38,138 @@ public class UserController {
 
     @GetMapping(value = "")
     public String redirectToIndex() {
-        return "redirect:/admin/index";
+        return "redirect:/admin/index"; // Or redirect to the new path if you change it
     }
 
-    @GetMapping(value = "/index")
-    public String index(
-            @AuthenticationPrincipal User userHomeAdm,
+    // This single endpoint serves the combined page
+    @GetMapping(value = "/index") // Or "/main", "/dashboard", etc. if you prefer
+    public String mainPage(
+            @AuthenticationPrincipal User userHomeAdm, // Gets the currently logged-in user
             ModelMap model,
-            @ModelAttribute("user") User user // Add this to have an empty user object for the form
+            @ModelAttribute("newUser") User newUser // Use a distinct name for the new user form object
     ) {
+        // Data for the top navbar
         model.addAttribute("userHomeAdm", userHomeAdm);
 
+        // Data for the Admin tab (Users table)
         List<User> users = userService.index();
         model.addAttribute("users", users);
 
-        // Add data needed for the 'New User' tab
+        // Data for the Admin tab (New User form)
         model.addAttribute("allRoles", roleService.findAll());
-        // An empty User object is already added via @ModelAttribute above
+        // The 'newUser' object is already added via @ModelAttribute
 
-        return "index"; // Make sure your main template is named index.html
-    }
+        // Data for the User tab (uses 'userHomeAdm' which is already added)
 
-    // This method handles the form submission from the 'New User' tab
-    @PostMapping(value = "/index") // Keep the action pointing here for simplicity
-    public String saveUser(@ModelAttribute("user") User user, ModelMap model) {
-        Set<Role> fullRoles = user.getRoles().stream()
-                .map(role -> roleService.findById(role.getId()))
-                .collect(Collectors.toSet());
-
-        user.setRoles(fullRoles);
-
-        // Only encode if a password was actually provided (e.g., not empty)
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        } else {
-            // Handle case where password might be required but wasn't provided
-            // Or assume password isn't mandatory during creation here if logic allows
+        // Pass any flash attributes (like success/error messages after redirect)
+        // This assumes you added RedirectAttributes to methods like saveUser, updateUser, deleteUser
+        if (model.containsAttribute("successMessage")) {
+            model.addAttribute("successMessage", model.getAttribute("successMessage"));
+        }
+        if (model.containsAttribute("errorMessage")) {
+            model.addAttribute("errorMessage", model.getAttribute("errorMessage"));
         }
 
 
-        if (userService.existsByUsername(user.getUsername())) {
-            model.addAttribute("errorMessage",
-                    "Username already exists.");
-            // Re-add data needed for both tabs when returning the same page
-            model.addAttribute("users", userService.index()); // Reload user list
-            model.addAttribute("allRoles", roleService.findAll());
-            // The 'user' object with entered data is already in the model via @ModelAttribute
+        return "main-page"; // Return the new combined template name
+    }
 
-            return "index"; // Return the main template name on error
+    // --- Methods for handling Admin Tab actions ---
+
+    @PostMapping(value = "/save") // Changed endpoint to avoid conflict with GET /index
+    public String saveUser(@ModelAttribute("newUser") User user, RedirectAttributes redirectAttributes) { // Use RedirectAttributes
+        try {
+            Set<Role> fullRoles = user.getRoles().stream()
+                    .map(role -> roleService.findById(role.getId()))
+                    .collect(Collectors.toSet());
+            user.setRoles(fullRoles);
+
+            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+                user.setPassword(passwordEncoder.encode(user.getPassword()));
+            } else {
+                // You might want to enforce password setting here depending on requirements
+                // For now, we assume it might be set later or is optional initially
+                // If password is required, add validation and error handling
+            }
+
+            if (userService.existsByUsername(user.getUsername())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Username already exists.");
+                // Redirect back to the index page, the form state won't be preserved easily this way
+                // A better approach for validation errors is often returning the view directly
+                // but for simplicity with tabs, redirect is shown here.
+                return "redirect:/admin/index"; // Redirect back
+            }
+
+            userService.addUser(user);
+            redirectAttributes.addFlashAttribute("successMessage", "User added successfully!"); // Add success message
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error adding user: " + e.getMessage());
         }
-
-        userService.addUser(user);
-
-        // Optional: Add a success message after redirect
-        // RedirectAttributes redirectAttributes
-        // redirectAttributes.addFlashAttribute("successMessage", "User added successfully!");
-
-        return "redirect:/admin/index"; // Redirect on success
+        return "redirect:/admin/index"; // Redirect on success or general error
     }
 
-    // You likely don't need a separate @GetMapping("/admin/add") anymore
-    // if the form is always part of the main index page via tabs.
-    /*
-    @GetMapping(value = "/add")
-    public String newUser(@ModelAttribute("user") User user, ModelMap model) {
-        model.addAttribute("allRoles", roleService.findAll());
-        return "add"; // This view is now obsolete if using tabs
-    }
-    */
 
     @GetMapping(value = "/edit")
-    public String editUser(@RequestParam(name = "id") int id, ModelMap model) {
+    public String editUser(@RequestParam(name = "id") int id, ModelMap model, @AuthenticationPrincipal User userHomeAdm) {
         User userToEdit = userService.getUserById(id);
         model.addAttribute("allRoles", roleService.findAll());
         model.addAttribute("userToEdit", userToEdit);
-        return "edit"; // Assuming you still have a separate edit.html page
+        model.addAttribute("userHomeAdm", userHomeAdm); // Add user for navbar in edit page
+        return "edit"; // Keep separate edit page for simplicity unless you want modal editing
     }
 
     @PostMapping(value = "/edit")
-    public String updateUser(@ModelAttribute("userToEdit") User user, ModelMap model) {
-        Set<Role> fullRoles = user.getRoles().stream()
-                .map(role -> roleService.findById(role.getId()))
-                .collect(Collectors.toSet());
-        user.setRoles(fullRoles);
-        User existingUser = userService.getUserById(user.getId());
+    public String updateUser(@ModelAttribute("userToEdit") User user, RedirectAttributes redirectAttributes) { // Use RedirectAttributes
+        try {
+            Set<Role> fullRoles = user.getRoles().stream()
+                    .map(role -> roleService.findById(role.getId()))
+                    .collect(Collectors.toSet());
+            user.setRoles(fullRoles);
 
-        // Only encode if the password field was modified (not empty and different from existing)
-        if (user.getPassword() != null && !user.getPassword().isEmpty() && !passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        } else {
-            // If password field is empty or unchanged, keep the existing password
-            user.setPassword(existingUser.getPassword());
+            User existingUser = userService.getUserById(user.getId());
+
+            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+                // Only encode if the password field was modified (not empty)
+                if (!passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
+                    user.setPassword(passwordEncoder.encode(user.getPassword()));
+                } else {
+                    // Password provided but matches the old one (likely unintentional re-submit)
+                    user.setPassword(existingUser.getPassword()); // Keep existing encoded password
+                }
+            } else {
+                // If password field is empty, keep the existing password
+                user.setPassword(existingUser.getPassword());
+            }
+
+            Optional<User> userWithSameUsername = userService.findByUsername(user.getUsername());
+
+            if (userWithSameUsername.isPresent() && !(userWithSameUsername.get().getId() == (user.getId()))) {
+                // Cannot easily redirect attributes AND keep form data AND show error on edit page without more complex handling
+                // Consider returning the view directly with error message
+                // For now, redirecting with a general error message
+                redirectAttributes.addFlashAttribute("errorMessage", "Username already exists.");
+                // Optionally redirect back to edit page: return "redirect:/admin/edit?id=" + user.getId();
+                return "redirect:/admin/index"; // Or back to index
+            }
+
+            userService.updateUser(user);
+            redirectAttributes.addFlashAttribute("successMessage", "User updated successfully!");
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating user: " + e.getMessage());
         }
-
-        Optional<User> userWithSameUsername = userService.findByUsername(user.getUsername());
-
-        // Check for username existence excluding the current user being edited
-        if (userWithSameUsername.isPresent() && !(userWithSameUsername.get().getId() == (user.getId()))) { // Use .equals for Integer comparison
-            model.addAttribute("errorMessage", "Username already exists.");
-            model.addAttribute("allRoles", roleService.findAll());
-            // The 'userToEdit' object with entered data is already in the model via @ModelAttribute
-            return "edit"; // Return the edit template on error
-        }
-
-        userService.updateUser(user);
         return "redirect:/admin/index";
     }
 
-
     @PostMapping("/delete")
-    public String deleteUser(@RequestParam("id") int id) {
-        userService.deleteUser(id);
-        // Optional: Add a success message after redirect
-        // redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully!");
-        return "redirect:/admin/index"; // Redirect back to the index page after deletion
+    public String deleteUser(@RequestParam("id") int id, RedirectAttributes redirectAttributes) { // Use RedirectAttributes
+        try {
+            userService.deleteUser(id);
+            redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting user: " + e.getMessage());
+        }
+        return "redirect:/admin/index"; // Redirect back to the main page after deletion
     }
 }
