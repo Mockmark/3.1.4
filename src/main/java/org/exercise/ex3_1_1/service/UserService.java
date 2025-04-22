@@ -17,20 +17,22 @@ public class UserService implements ServiceProv {
     }
 
     @Override
-    @Transactional
+    @Transactional // Consider making this @Transactional(readOnly = true) as it's a fetch operation
     public void addUser(User user) {
         userDao.save(user);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true) // It's good practice for read operations
     public List<User> index() {
-        return userDao.findAll();
+        // Call the new method that eagerly fetches roles
+        return userDao.findAllWithRoles();
     }
 
     @Override
     @Transactional(readOnly = true)
     public User getUserById(long id) {
+        // This method already eagerly fetches roles, so it's fine
         return userDao.findUserWithRolesById(id);
     }
 
@@ -55,6 +57,7 @@ public class UserService implements ServiceProv {
     @Override
     @Transactional(readOnly = true)
     public Optional<User> findByUsername(String username) {
+        // This method already eagerly fetches roles, so it's fine
         return userDao.findByUsername(username);
     }
 
