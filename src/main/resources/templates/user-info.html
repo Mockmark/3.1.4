@@ -49,19 +49,30 @@
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top"> <div class="container-fluid">
-        <span class="navbar-text text-white" th:if="${userHome != null}">Username:
-            <span th:text="${userHome.username}"></span> with roles:
-            <span th:each="role, iterStat : ${userHome.roles}">
-                <span th:text="${role.name}">ROLE</span><th:block th:if="!${iterStat.last}">, </th:block>
-            </span>
-        </span>
-    <div class="ms-auto">
-        <form th:action="@{/logout}" method="post" class="d-flex">
-            <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
-        </form>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">User Info Panel</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item d-flex align-items-center" th:if="${userHome != null}">
+                     <span class="navbar-text me-3 text-white">Username: <span th:text="${userHome.username}"></span> with roles:
+                        <span th:each="role, iterStat : ${userHome.roles}">
+                            <span th:text="${role.name}">ROLE</span><th:block th:if="!${iterStat.last}">, </th:block>
+                        </span>
+                     </span>
+                </li>
+                <li class="nav-item">
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="btn btn-outline-danger">Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
     </div>
-</div>
 </nav>
 
 <div class="container-fluid">
@@ -93,6 +104,7 @@
                             <th style="width: 20%;">Name</th>
                             <th style="width: 10%;">Age</th>
                             <th style="width: 25%;">Email</th>
+                            <th style="width: 20%;">Username</th>
                             <th style="width: 20%;">Roles</th>
                         </tr>
                         </thead>
@@ -102,6 +114,7 @@
                                 <td th:text="${userHome.name}"></td>
                                 <td th:text="${userHome.age}"></td>
                                 <td th:text="${userHome.email}"></td>
+                                <td th:text="${userHome.username}"></td>
                                 <td>
                                     <span th:each="role, iterStat : ${userHome.roles}">
                                          <span th:text="${role.name}">Roles</span><th:block th:if="${!iterStat.last}">, </th:block>
