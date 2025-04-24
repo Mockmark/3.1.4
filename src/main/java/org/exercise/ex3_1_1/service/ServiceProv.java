@@ -20,4 +20,10 @@ public interface ServiceProv {
     boolean existsByUsername(@Param("username") String username);
 
     Optional<User> findByUsername(String username);
+
+    void roleRehydrate(User user);
+
+    void ensurePassword(User user);
+
+    void ensurePassword(User user, User existingUser);
 }

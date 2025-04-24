@@ -1,12 +1,10 @@
 package org.exercise.ex3_1_1.controller;
 
-import org.exercise.ex3_1_1.model.Role;
 import org.exercise.ex3_1_1.model.User;
 import org.exercise.ex3_1_1.service.RoleService;
 import org.exercise.ex3_1_1.service.ServiceProv;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +12,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes; // Import
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -27,13 +23,11 @@ import java.util.stream.Collectors;
 public class UserController {
     private final ServiceProv userService;
     private final RoleService roleService;
-    private final PasswordEncoder passwordEncoder;
 
     // Constructor injection
-    UserController(ServiceProv userService, RoleService roleService, PasswordEncoder passwordEncoder) {
+    UserController(ServiceProv userService, RoleService roleService) {
         this.userService = userService;
         this.roleService = roleService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping(value = "")
@@ -79,14 +73,9 @@ public class UserController {
     @PostMapping(value = "/save") // Changed endpoint to avoid conflict with GET /index
     public String saveUser(@ModelAttribute("newUser") User user, RedirectAttributes redirectAttributes) { // Use RedirectAttributes
         try {
-            Set<Role> fullRoles = user.getRoles().stream()
-                    .map(role -> roleService.findById(role.getId()))
-                    .collect(Collectors.toSet());
-            user.setRoles(fullRoles);
+            userService.roleRehydrate(user);
 
-            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-                user.setPassword(passwordEncoder.encode(user.getPassword()));
-            }
+            userService.ensurePassword(user);
 
             if (userService.existsByUsername(user.getUsername())) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Username already exists.");
@@ -105,41 +94,15 @@ public class UserController {
         return "redirect:/admin/index"; // Redirect on success or general error
     }
 
-
-    @GetMapping(value = "/edit")
-    public String editUser(@RequestParam(name = "id") int id, ModelMap model, @AuthenticationPrincipal User userHomeAdm) {
-        User userToEdit = userService.getUserById(id);
-        model.addAttribute("allRoles", roleService.findAll());
-        model.addAttribute("userToEdit", userToEdit);
-        model.addAttribute("userHomeAdm", userHomeAdm); // Add user for navbar in edit page
-        return "edit"; // Keep separate edit page for simplicity unless you want modal editing
-    }
-
     @PostMapping(value = "/edit")
     public String updateUser(@ModelAttribute("userToEdit") User user, RedirectAttributes redirectAttributes) { // Use RedirectAttributes
         try {
-            Set<Role> fullRoles = user.getRoles().stream()
-                    .map(role -> roleService.findById(role.getId()))
-                    .collect(Collectors.toSet());
-            user.setRoles(fullRoles);
+            userService.roleRehydrate(user);
 
             User existingUser = userService.getUserById(user.getId());
-
-            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-                // Only encode if the password field was modified (not empty)
-                if (!passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
-                    user.setPassword(passwordEncoder.encode(user.getPassword()));
-                } else {
-                    // Password provided but matches the old one (likely unintentional re-submit)
-                    user.setPassword(existingUser.getPassword()); // Keep existing encoded password
-                }
-            } else {
-                // If password field is empty, keep the existing password
-                user.setPassword(existingUser.getPassword());
-            }
+            userService.ensurePassword(user, existingUser);
 
             Optional<User> userWithSameUsername = userService.findByUsername(user.getUsername());
-
             if (userWithSameUsername.isPresent() && !(userWithSameUsername.get().getId() == (user.getId()))) {
                 // Cannot easily redirect attributes AND keep form data AND show error on edit page without more complex handling
                 // Consider returning the view directly with error message
