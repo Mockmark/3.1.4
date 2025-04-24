@@ -8,11 +8,13 @@
         body {
             /* Add padding for fixed navbar */
             padding-top: 56px;
+            background-color: #15142b;
+            color: #adc1cd;
         }
         .sidebar {
             /* Match admin sidebar height */
             min-height: calc(100vh - 56px); /* Full height minus navbar */
-            background-color: #0d6efd; /* Blue background like image */
+            background-color: #213750; /* Blue background like image */
             padding-top: 1rem; /* Add some padding */
         }
         /* Style sidebar links */
@@ -36,20 +38,20 @@
         /* Ensure main content area takes remaining space */
         .main-content {
             padding: 1.5rem;
-            background-color: #fff; /* White background for content */
+            background-color: #15142b;
             min-height: calc(100vh - 56px); /* Match sidebar height */
         }
         /* Styling for the user info table header */
         .table thead th {
-            background-color: #f8f9fa; /* Light grey background for table header */
+            background-color: #1c2832;
         }
     </style>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top"> <div class="container-fluid">
-        <span class="navbar-text text-white" th:if="${userHome != null}">
-            <span th:text="${userHome.email}">user@example.com</span> with roles:
+        <span class="navbar-text text-white" th:if="${userHome != null}">Username:
+            <span th:text="${userHome.username}"></span> with roles:
             <span th:each="role, iterStat : ${userHome.roles}">
                 <span th:text="${role.name}">ROLE</span><th:block th:if="!${iterStat.last}">, </th:block>
             </span>
@@ -78,32 +80,31 @@
         </div>
 
         <main class="col-md-9 col-lg-10 main-content">
-            <h1 class="mb-3">User information-page</h1>
+            <h1 class="mb-3">User information</h1>
 
-            <div class="card">
+            <div class="card" style="background-color: #213750; color: #adc1cd; ">
                 <div class="card-header">
                     About user
                 </div>
                 <div class="card-body">
                     <div th:if="${userHome != null}">
-                        <table class="table table-striped table-bordered"> <thead class="table-light"> <tr>
+                        <table class="table table-striped table-bordered table-dark"> <thead class="table-dark"> <tr>
                             <th style="width: 5%;">ID</th>
-                            <th style="width: 20%;">First Name</th>
-                            <th style="width: 20%;">Last Name</th>
+                            <th style="width: 20%;">Name</th>
                             <th style="width: 10%;">Age</th>
                             <th style="width: 25%;">Email</th>
-                            <th style="width: 20%;">Role</th>
+                            <th style="width: 20%;">Roles</th>
                         </tr>
                         </thead>
                             <tbody>
                             <tr>
                                 <td th:text="${userHome.id}"></td>
                                 <td th:text="${userHome.name}"></td>
-                                <td>user</td> <td th:text="${userHome.age}"></td>
+                                <td th:text="${userHome.age}"></td>
                                 <td th:text="${userHome.email}"></td>
                                 <td>
                                     <span th:each="role, iterStat : ${userHome.roles}">
-                                         <span th:text="${role.name}">Role</span><th:block th:if="${!iterStat.last}">, </th:block>
+                                         <span th:text="${role.name}">Roles</span><th:block th:if="${!iterStat.last}">, </th:block>
                                      </span>
                                 </td>
                             </tr>
