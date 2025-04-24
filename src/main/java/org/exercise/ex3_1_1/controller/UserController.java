@@ -25,9 +25,9 @@ import java.util.stream.Collectors;
 // For now, assuming only Admins access this combined view:
 @PreAuthorize("hasRole('ADMIN')")
 public class UserController {
-    ServiceProv userService;
-    RoleService roleService;
-    PasswordEncoder passwordEncoder;
+    private final ServiceProv userService;
+    private final RoleService roleService;
+    private final PasswordEncoder passwordEncoder;
 
     // Constructor injection
     UserController(ServiceProv userService, RoleService roleService, PasswordEncoder passwordEncoder) {
@@ -86,10 +86,6 @@ public class UserController {
 
             if (user.getPassword() != null && !user.getPassword().isEmpty()) {
                 user.setPassword(passwordEncoder.encode(user.getPassword()));
-            } else {
-                // You might want to enforce password setting here depending on requirements
-                // For now, we assume it might be set later or is optional initially
-                // If password is required, add validation and error handling
             }
 
             if (userService.existsByUsername(user.getUsername())) {
