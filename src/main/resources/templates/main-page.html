@@ -46,12 +46,14 @@
             background-color: #495057; /* Example: light gray background */
             color: #f4f4f4; /* Ensure text is readable, default dark text */
         }
+
         .nav-tabs .nav-link {
             color: #ffffff; /* Default text color (dark gray) */
             background-color: #395e88; /* Default background color (light gray) */
             border-color: #dee2e6 #dee2e6 #fff; /* Default border color (bottom border usually matches content) */
             margin-bottom: -1px; /* Prevents double border with content */
         }
+
         .nav-tabs .nav-link:hover {
             border-color: #e9ecef #e9ecef #dee2e6; /* Change border on hover */
             background-color: #318bea; /* Slightly lighter gray on hover */
@@ -98,7 +100,7 @@
                 <li class="nav-item d-flex align-items-center" th:if="${userHomeAdm != null}">
                          <span class="navbar-text me-3">Username:
                             <span th:text="${userHomeAdm.username}"></span> with roles: <span
-                                 th:text="${#strings.listJoin(userHomeAdm.roles.![name], ', ')}"></span>
+                                     th:text="${#strings.listJoin(userHomeAdm.roles.![name], ', ')}"></span>
                          </span>
                 </li>
                 <li class="nav-item">
@@ -205,14 +207,16 @@
                                                         th:data-user-age="${user.age}"
                                                         th:data-user-email="${user.email}"
                                                         th:data-user-username="${user.username}"
-                                                        th:data-user-roles="${user.roles.![id]}"> Edit
+                                                        th:data-user-roles="${#strings.listJoin(user.roles.![id], ',')}">
+                                                    Edit
                                                 </button>
                                             </td>
                                             <td>
                                                 <button type="button" class="btn btn-danger btn-sm delete-user-button"
                                                         data-bs-toggle="modal" data-bs-target="#deleteUserModal"
                                                         th:data-user-id="${user.id}"
-                                                        th:data-user-name="${user.name}"> Delete
+                                                        th:data-user-name="${user.name}"
+                                                        th:data-user-username="${user.username}"> Delete
                                                 </button>
                                             </td>
                                         </tr>
@@ -367,7 +371,8 @@
             </div>
             <form id="deleteUserForm" action="#" th:action="@{/admin/delete}" method="post">
                 <div class="modal-body">
-                    <p>Are you sure you want to delete user <strong id="deleteUserName"></strong>?</p>
+                    <p>Are you sure you want to delete user <strong id="deleteUserName"></strong>
+                        with username: <strong id="deleteUserUsername"></strong>?</p>
                     <input type="hidden" id="deleteUserId" name="id">
                 </div>
                 <div class="modal-footer">
@@ -428,11 +433,14 @@
         var button = event.relatedTarget; // Button that triggered the modal
         var userId = button.getAttribute('data-user-id');
         var userName = button.getAttribute('data-user-name');
+        var userUsername = button.getAttribute('data-user-username'); // Get the username
 
         var modalUserNameStrong = deleteUserModal.querySelector('#deleteUserName');
+        var modalUserUsernameStrong = deleteUserModal.querySelector('#deleteUserUsername');
         var modalUserIdInput = deleteUserModal.querySelector('#deleteUserId');
 
         modalUserNameStrong.textContent = userName;
+        modalUserUsernameStrong.textContent = userUsername; // Set the username text
         modalUserIdInput.value = userId;
     });
 </script>
