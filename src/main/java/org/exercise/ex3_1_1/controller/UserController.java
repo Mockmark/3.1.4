@@ -8,23 +8,18 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes; // Import RedirectAttributes
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin")
-// If ONLY Admins should see this combined page, keep this.
-// If Users should also see it (but only the User tab), you'd need a more general mapping
-// and potentially move the @PreAuthorize inside methods or use method-level security.
-// For now, assuming only Admins access this combined view:
 @PreAuthorize("hasRole('ADMIN')")
 public class UserController {
     private final ServiceProv userService;
     private final RoleService roleService;
 
-    // Constructor injection
     UserController(ServiceProv userService, RoleService roleService) {
         this.userService = userService;
         this.roleService = roleService;
@@ -32,15 +27,14 @@ public class UserController {
 
     @GetMapping(value = "")
     public String redirectToIndex() {
-        return "redirect:/admin/index"; // Or redirect to the new path if you change it
+        return "redirect:/admin/index";
     }
 
-    // This single endpoint serves the combined page
-    @GetMapping(value = "/index") // Or "/main", "/dashboard", etc. if you prefer
+    @GetMapping(value = "/index")
     public String mainPage(
-            @AuthenticationPrincipal User userHomeAdm, // Gets the currently logged-in user
+            @AuthenticationPrincipal User userHomeAdm,
             ModelMap model,
-            @ModelAttribute("newUser") User newUser // Use a distinct name for the new user form object
+            @ModelAttribute("newUser") User newUser
     ) {
         // Data for the top navbar
         model.addAttribute("userHomeAdm", userHomeAdm);
@@ -51,12 +45,7 @@ public class UserController {
 
         // Data for the Admin tab (New User form)
         model.addAttribute("allRoles", roleService.findAll());
-        // The 'newUser' object is already added via @ModelAttribute
 
-        // Data for the User tab (uses 'userHomeAdm' which is already added)
-
-        // Pass any flash attributes (like success/error messages after redirect)
-        // This assumes you added RedirectAttributes to methods like saveUser, updateUser, deleteUser
         if (model.containsAttribute("successMessage")) {
             model.addAttribute("successMessage", model.getAttribute("successMessage"));
         }
@@ -64,29 +53,19 @@ public class UserController {
             model.addAttribute("errorMessage", model.getAttribute("errorMessage"));
         }
 
-
-        return "main-page"; // Return the new combined template name
+        return "main-page";
     }
 
-    // --- Methods for handling Admin Tab actions ---
-
-    @PostMapping(value = "/save") // Changed endpoint to avoid conflict with GET /index
-    public String saveUser(@ModelAttribute("newUser") User user, RedirectAttributes redirectAttributes) { // Use RedirectAttributes
+    @PostMapping(value = "/save")
+    public String saveUser(@ModelAttribute("newUser") User user, RedirectAttributes redirectAttributes) {
         try {
-            userService.roleRehydrate(user);
-
-            userService.ensurePassword(user);
-
             if (userService.existsByUsername(user.getUsername())) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Username already exists.");
-                // Redirect back to the index page, the form state won't be preserved easily this way
-                // A better approach for validation errors is often returning the view directly
-                // but for simplicity with tabs, redirect is shown here.
                 return "redirect:/admin/index"; // Redirect back
             }
 
             userService.addUser(user);
-            redirectAttributes.addFlashAttribute("successMessage", "User added successfully!"); // Add success message
+            redirectAttributes.addFlashAttribute("successMessage", "User added successfully!");
 
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error adding user: " + e.getMessage());
@@ -95,20 +74,11 @@ public class UserController {
     }
 
     @PostMapping(value = "/edit")
-    public String updateUser(@ModelAttribute("userToEdit") User user, RedirectAttributes redirectAttributes) { // Use RedirectAttributes
+    public String updateUser(@ModelAttribute("userToEdit") User user, RedirectAttributes redirectAttributes) {
         try {
-            userService.roleRehydrate(user);
-
-            User existingUser = userService.getUserById(user.getId());
-            userService.ensurePassword(user, existingUser);
-
             Optional<User> userWithSameUsername = userService.findByUsername(user.getUsername());
             if (userWithSameUsername.isPresent() && !(userWithSameUsername.get().getId() == (user.getId()))) {
-                // Cannot easily redirect attributes AND keep form data AND show error on edit page without more complex handling
-                // Consider returning the view directly with error message
-                // For now, redirecting with a general error message
                 redirectAttributes.addFlashAttribute("errorMessage", "Username already exists.");
-                // Optionally redirect back to edit page: return "redirect:/admin/edit?id=" + user.getId();
                 return "redirect:/admin/index"; // Or back to index
             }
 
@@ -122,13 +92,13 @@ public class UserController {
     }
 
     @PostMapping("/delete")
-    public String deleteUser(@RequestParam("id") int id, RedirectAttributes redirectAttributes) { // Use RedirectAttributes
+    public String deleteUser(@RequestParam("id") int id, RedirectAttributes redirectAttributes) {
         try {
             userService.deleteUser(id);
             redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error deleting user: " + e.getMessage());
         }
-        return "redirect:/admin/index"; // Redirect back to the main page after deletion
+        return "redirect:/admin/index";
     }
 }

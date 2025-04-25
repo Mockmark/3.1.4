@@ -25,28 +25,30 @@ public class UserService implements ServiceProv {
     }
 
     @Override
-    @Transactional // Consider making this @Transactional(readOnly = true) as it's a fetch operation
+    @Transactional
     public void addUser(User user) {
+        roleRehydrate(user);
+        ensurePassword(user);
         userDao.save(user);
     }
 
     @Override
-    @Transactional(readOnly = true) // It's good practice for read operations
+    @Transactional(readOnly = true)
     public List<User> index() {
-        // Call the new method that eagerly fetches roles
         return userDao.findAllWithRoles();
     }
 
     @Override
     @Transactional(readOnly = true)
     public User getUserById(long id) {
-        // This method already eagerly fetches roles, so it's fine
         return userDao.findUserWithRolesById(id);
     }
 
     @Override
     @Transactional
     public void updateUser(User user) {
+        roleRehydrate(user);
+        ensurePasswordExtra(user);
         userDao.save(user);
     }
 
@@ -65,7 +67,6 @@ public class UserService implements ServiceProv {
     @Override
     @Transactional(readOnly = true)
     public Optional<User> findByUsername(String username) {
-        // This method already eagerly fetches roles, so it's fine
         return userDao.findByUsername(username);
     }
 
@@ -88,17 +89,15 @@ public class UserService implements ServiceProv {
 
     @Override
     @Transactional
-    public void ensurePassword(User user, User existingUser) {
+    public void ensurePasswordExtra(User user) {
+        User existingUser = getUserById(user.getId());
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            // Only encode if the password field was modified (not empty)
             if (!passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
                 user.setPassword(passwordEncoder.encode(user.getPassword()));
             } else {
-                // Password provided but matches the old one (likely unintentional re-submit)
-                user.setPassword(existingUser.getPassword()); // Keep existing encoded password
+                user.setPassword(existingUser.getPassword());
             }
         } else {
-            // If password field is empty, keep the existing password
             user.setPassword(existingUser.getPassword());
         }
     }
