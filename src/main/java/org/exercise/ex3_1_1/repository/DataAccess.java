@@ -18,7 +18,6 @@ public interface DataAccess extends JpaRepository<User, Long> {
 
     boolean existsByUsername(@Param("username") String username);
 
-    // Add this method to fetch all users with their roles eagerly
     @Query("SELECT DISTINCT u FROM User u JOIN FETCH u.roles")
     List<User> findAllWithRoles();
 }

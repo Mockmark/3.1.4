@@ -3,7 +3,6 @@ package org.exercise.ex3_1_1.controller;
 import org.exercise.ex3_1_1.model.User;
 import org.exercise.ex3_1_1.service.RoleService;
 import org.exercise.ex3_1_1.service.ServiceProv;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -15,7 +14,6 @@ import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin")
-@PreAuthorize("hasRole('ADMIN')")
 public class UserController {
     private final ServiceProv userService;
     private final RoleService roleService;
