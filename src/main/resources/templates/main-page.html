@@ -47,6 +47,14 @@
             color: #f4f4f4; /* Ensure text is readable, default dark text */
         }
 
+        #deleteUserModal .modal-body .form-control:disabled,
+        #deleteUserModal .modal-body .form-select:disabled {
+            background-color: #343a40;
+            color: #e2e6ea;
+            opacity: 0.75;
+            cursor: not-allowed;
+        }
+
         .nav-tabs .nav-link {
             color: #ffffff; /* Default text color (dark gray) */
             background-color: #395e88; /* Default background color (light gray) */
@@ -216,7 +224,11 @@
                                                         data-bs-toggle="modal" data-bs-target="#deleteUserModal"
                                                         th:data-user-id="${user.id}"
                                                         th:data-user-name="${user.name}"
-                                                        th:data-user-username="${user.username}"> Delete
+                                                        th:data-user-username="${user.username}"
+                                                        th:data-user-age="${user.age}"
+                                                        th:data-user-email="${user.email}"
+                                                        th:data-user-roles="${#strings.listJoin(user.roles.![id], ',')}">
+                                                    Delete
                                                 </button>
                                             </td>
                                         </tr>
@@ -373,7 +385,28 @@
                 <div class="modal-body">
                     <p>Are you sure you want to delete user <strong id="deleteUserName"></strong>
                         with username: <strong id="deleteUserUsername"></strong>?</p>
+
                     <input type="hidden" id="deleteUserId" name="id">
+                    <div class="mb-3">
+                        <label for="deleteNameDisplay" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="deleteNameDisplay" disabled></div>
+                    <div class="mb-3">
+                        <label for="deleteAgeDisplay" class="form-label">Age</label>
+                        <input type="number" class="form-control" id="deleteAgeDisplay" disabled></div>
+                    <div class="mb-3">
+                        <label for="deleteEmailDisplay" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="deleteEmailDisplay" disabled></div>
+                    <div class="mb-3">
+                        <label for="deleteUsernameDisplay" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="deleteUsernameDisplay" disabled></div>
+                    <div class="mb-3">
+                        <label for="deleteRolesDisplay" class="form-label">Roles</label>
+                        <select multiple class="form-select" id="deleteRolesDisplay" disabled>
+                            <option th:each="role : ${allRoles}" th:value="${role.id}" th:text="${role.name}">Role
+                            </option>
+                        </select>
+                    </div>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -433,15 +466,48 @@
         var button = event.relatedTarget; // Button that triggered the modal
         var userId = button.getAttribute('data-user-id');
         var userName = button.getAttribute('data-user-name');
-        var userUsername = button.getAttribute('data-user-username'); // Get the username
+        var userUsername = button.getAttribute('data-user-username');
+        var userAge = button.getAttribute('data-user-age');   // Get Age
+        var userEmail = button.getAttribute('data-user-email'); // Get Email
+        var userRoles = button.getAttribute('data-user-roles'); // Get Roles string
+
 
         var modalUserNameStrong = deleteUserModal.querySelector('#deleteUserName');
         var modalUserUsernameStrong = deleteUserModal.querySelector('#deleteUserUsername');
         var modalUserIdInput = deleteUserModal.querySelector('#deleteUserId');
 
-        modalUserNameStrong.textContent = userName;
-        modalUserUsernameStrong.textContent = userUsername; // Set the username text
-        modalUserIdInput.value = userId;
+        // Get the new display input elements
+        var modalNameDisplayInput = deleteUserModal.querySelector('#deleteNameDisplay');
+        var modalAgeDisplayInput = deleteUserModal.querySelector('#deleteAgeDisplay');
+        var modalEmailDisplayInput = deleteUserModal.querySelector('#deleteEmailDisplay');
+        var modalUsernameDisplayInput = deleteUserModal.querySelector('#deleteUsernameDisplay');
+        var modalRolesDisplaySelect = deleteUserModal.querySelector('#deleteRolesDisplay'); // Get the select element
+
+
+        modalUserNameStrong.textContent = userName; // Keep confirmation Name
+        modalUserUsernameStrong.textContent = userUsername; // Keep confirmation Username
+        modalUserIdInput.value = userId; // Keep hidden ID for form submission
+
+        // Populate the display input elements
+        modalNameDisplayInput.value = userName;
+        modalAgeDisplayInput.value = userAge;
+        modalEmailDisplayInput.value = userEmail;
+        modalUsernameDisplayInput.value = userUsername;
+
+        // Populate the roles select dropdown (similar logic to edit modal)
+        var userRoleIds = userRoles ? userRoles.split(',').map(id => parseInt(id)) : [];
+        // Iterate through the options in the delete modal's roles select
+        for (var i = 0; i < modalRolesDisplaySelect.options.length; i++) {
+            var option = modalRolesDisplaySelect.options[i];
+            // Check if the option's value (role ID) is in the selected user's role IDs
+            if (userRoleIds.includes(parseInt(option.value))) {
+                option.selected = true; // Select the option
+            } else {
+                option.selected = false; // Ensure other options are not selected
+            }
+        }
+        // Note: The select element itself is disabled in the HTML, so selection is visual only.
+
     });
 </script>
 </body>
