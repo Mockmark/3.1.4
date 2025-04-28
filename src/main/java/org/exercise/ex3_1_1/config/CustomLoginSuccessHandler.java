@@ -22,16 +22,19 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 
         String redirectURL = request.getContextPath();
+        boolean isAdmin = false;
 
         for (GrantedAuthority authority : authorities) {
             String role = authority.getAuthority();
             if (role.equals("ROLE_ADMIN")) {
-                redirectURL += "/admin/index";
-                break;
-            } else if (role.equals("ROLE_USER")) {
-                redirectURL += "/user/home";
-                break;
+                isAdmin = true;
             }
+        }
+
+        if (isAdmin) {
+            redirectURL += "/admin/index";
+        } else {
+            redirectURL += "/user/home";
         }
 
         response.sendRedirect(redirectURL);
