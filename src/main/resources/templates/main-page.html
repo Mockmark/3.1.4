@@ -431,7 +431,6 @@
         }
     }
 
-
     // Function to collect form data into a JSON object
     function serializeFormToJSON(form) {
         const obj = {};
@@ -568,7 +567,10 @@
                     }
                     selectElement.appendChild(option);
                 });
-                selectElement.disabled = false; // Enable after loading
+                // Only re-enable the select if it's NOT the delete modal's roles display
+                if (selectElementId !== 'deleteRolesDisplay') { // <-- ADD THIS CONDITIONAL CHECK
+                    selectElement.disabled = false; // Enable after loading (only if not the delete modal)
+                }
             })
             .catch(error => {
                 console.error('Error fetching roles:', error);
@@ -578,7 +580,6 @@
                 return Promise.reject(error); // Propagate error
             });
     }
-
 
     // --- Event Listeners ---
 
@@ -771,7 +772,6 @@
         });
     }
 
-
     // Handle Delete User Modal
     if (deleteUserModal) { // Ensure modal exists
         deleteUserModal.addEventListener('show.bs.modal', function (event) {
@@ -819,7 +819,6 @@
                 });
         });
     }
-
 
     // --- Delegation for Edit/Delete Buttons (Since table rows are added dynamically) ---
 
@@ -888,14 +887,11 @@
             errorAlert.style.display = 'none';
             errorAlert.classList.remove('show'); // Ensure hidden
         }
-
-
         // 5. Trigger the initial data fetch and roles population
         fetchAndDisplayUsers(); // Populate the user table
         fetchAndPopulateRoles('newRoles'); // Populate roles for the "New User" form
 
         // Note: Roles for Edit/Delete modals are populated when the modal is shown
-
     });
 
 
