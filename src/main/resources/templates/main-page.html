@@ -151,15 +151,15 @@
             </div>
 
             <main class="col-md-9 col-lg-10 px-md-4">
-                <div th:if="${successMessage}" id="successMessage"
-                     class="alert alert-success alert-dismissible fade show" role="alert">
+                <div id="successMessage"
+                     class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
                     <span th:text="${successMessage}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="btn-close" aria-label="Close"></button>
                 </div>
-                <div th:if="${errorMessage}" id="errorMessage" class="alert alert-danger alert-dismissible fade show"
-                     role="alert">
+                <div id="errorMessage" class="alert alert-danger alert-dismissible fade show"
+                     role="alert" style="display: none;">
                     <span th:text="${errorMessage}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="btn-close" aria-label="Close"></button>
                 </div>
 
 
@@ -390,14 +390,18 @@
 
     // Function to display alert messages
     function displayMessage(type, message) {
-        const alertContainer = document.querySelector('main .container-fluid .row main'); // Adjust selector if needed
-        // Assuming alert divs are directly in the main content area as in your HTML
-        const successAlert = document.getElementById('successMessage'); // Add IDs to your alert divs if they don't have them
-        const errorAlert = document.getElementById('errorMessage'); // Add IDs here too
+        const successAlert = document.getElementById('successMessage');
+        const errorAlert = document.getElementById('errorMessage');
 
-        // Hide existing alerts
-        if (successAlert) successAlert.style.display = 'none';
-        if (errorAlert) errorAlert.style.display = 'none';
+        // Hide existing alerts and remove 'show' class
+        if (successAlert) {
+            successAlert.style.display = 'none';
+            successAlert.classList.remove('show'); // Ensure it's not showing before displaying new
+        }
+        if (errorAlert) {
+            errorAlert.style.display = 'none';
+            errorAlert.classList.remove('show'); // Ensure it's not showing before displaying new
+        }
 
         let alertDiv;
         if (type === 'success' && successAlert) {
@@ -413,13 +417,13 @@
         }
 
         if (alertDiv) {
-            alertDiv.style.display = 'block';
+            alertDiv.style.display = 'block'; // Set display first
+            alertDiv.classList.add('show'); // <-- ADD THIS LINE to make it visible via CSS transition/rule
             // Bootstrap's fade and show classes are usually handled automatically
-            // when the element's display style changes.
+            // when the element's display style changes. // This comment can be updated or removed
             // If not, you might need to manually add/remove 'show' and 'fade' classes
             // or rely on Bootstrap's JS for dismissible alerts.
-            // The existing Thymeleaf structure handles this if it's present.
-            // Ensure your alert divs have the 'alert-dismissible fade show' classes.
+            // Ensure your alert divs have the 'alert-dismissible fade show' classes. // This HTML comment can be updated or removed
         } else {
             // Fallback if alert divs are not found
             alert(type.toUpperCase() + ': ' + message);
@@ -706,21 +710,6 @@
                 });
         });
     }
-
-
-    // --- Initial Load Actions ---
-
-    // Call the functions to fetch data when the page finishes loading
-    document.addEventListener('DOMContentLoaded', () => {
-        fetchAndDisplayUsers(); // Populate the user table
-
-        // Populate roles for the "New User" form
-        fetchAndPopulateRoles('newRoles');
-
-        // Note: Roles for Edit/Delete modals are populated when the modal is shown
-    });
-
-
     // --- Existing Modal JavaScript (Updated to use fetchAndPopulateRoles) ---
 
     var editUserModal = document.getElementById('editUserModal');
@@ -855,29 +844,58 @@
         });
     }
 
-
-    // --- Ensure Alert Divs have IDs ---
-    // You need to manually add the IDs 'successMessage' and 'errorMessage'
-    // to your Thymeleaf alert divs in the HTML if they don't have them.
-    // Example: <div th:if="${successMessage}" id="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
-    // And: <div th:if="${errorMessage}" id="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
-
     // Initial check to hide Thymeleaf rendered messages on page load if they exist
     document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOMContentLoaded fired'); // Keep for now
+        console.log('Code inside consolidated DOMContentLoaded callback executed'); // Keep for now
+
+        // 1. Get references to the alert elements
         const successAlert = document.getElementById('successMessage');
         const errorAlert = document.getElementById('errorMessage');
+
+        // 2. Find the close buttons within these alerts
+        const successCloseButton = successAlert ? successAlert.querySelector('.btn-close') : null;
+        const errorCloseButton = errorAlert ? errorAlert.querySelector('.btn-close') : null;
+
+        // 3. Add click listeners to the close buttons to manually hide alerts
+        if (successCloseButton && successAlert) {
+            successCloseButton.addEventListener('click', () => {
+                successAlert.style.display = 'none';
+                successAlert.classList.remove('show'); // Manage fade
+            });
+        }
+        if (errorCloseButton && errorAlert) {
+            errorCloseButton.addEventListener('click', () => {
+                errorAlert.style.display = 'none';
+                errorAlert.classList.remove('show'); // Manage fade
+            });
+        }
+
+        // 4. Initial check for Thymeleaf rendered messages and set display
+        // This logic now uses the textContent of the hidden divs
         if (successAlert && successAlert.textContent.trim() !== '') {
             successAlert.style.display = 'block';
+            successAlert.classList.add('show'); // Trigger fade-in
         } else if (successAlert) {
             successAlert.style.display = 'none';
+            successAlert.classList.remove('show'); // Ensure hidden
         }
 
         if (errorAlert && errorAlert.textContent.trim() !== '') {
             errorAlert.style.display = 'block';
+            errorAlert.classList.add('show'); // Trigger fade-in
         } else if (errorAlert) {
             errorAlert.style.display = 'none';
+            errorAlert.classList.remove('show'); // Ensure hidden
         }
-        // Bootstrap's data-bs-dismiss will still make them closeable
+
+
+        // 5. Trigger the initial data fetch and roles population
+        fetchAndDisplayUsers(); // Populate the user table
+        fetchAndPopulateRoles('newRoles'); // Populate roles for the "New User" form
+
+        // Note: Roles for Edit/Delete modals are populated when the modal is shown
+
     });
 
 
