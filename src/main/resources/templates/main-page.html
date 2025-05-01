@@ -151,11 +151,13 @@
             </div>
 
             <main class="col-md-9 col-lg-10 px-md-4">
-                <div th:if="${successMessage}" id="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+                <div th:if="${successMessage}" id="successMessage"
+                     class="alert alert-success alert-dismissible fade show" role="alert">
                     <span th:text="${successMessage}"></span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-                <div th:if="${errorMessage}" id="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div th:if="${errorMessage}" id="errorMessage" class="alert alert-danger alert-dismissible fade show"
+                     role="alert">
                     <span th:text="${errorMessage}"></span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
@@ -219,7 +221,8 @@
                                         </div>
                                         <div class="mb-3">
                                             <label for="newEmail" class="form-label">Email</label>
-                                            <input type="email" name="email" id="newEmail" class="form-control" required>
+                                            <input type="email" name="email" id="newEmail" class="form-control"
+                                                   required>
                                         </div>
                                         <div class="mb-3">
                                             <label for="newAge" class="form-label">Age</label>
@@ -447,7 +450,7 @@
         const rolesSelect = form.querySelector('select[name="roles"]');
         if (rolesSelect) {
             const selectedRoles = Array.from(rolesSelect.selectedOptions)
-                .map(option => ({ id: parseInt(option.value) })); // Assuming roles have an 'id' property
+                .map(option => ({id: parseInt(option.value)})); // Assuming roles have an 'id' property
             obj.roles = selectedRoles; // Replace the simple array of IDs with array of objects {id: ...}
         }
 
@@ -578,7 +581,7 @@
     // Event listener for the New User form submission
     const newUserForm = document.getElementById('newUserForm');
     if (newUserForm) {
-        newUserForm.addEventListener('submit', function(event) {
+        newUserForm.addEventListener('submit', function (event) {
             event.preventDefault();
             const userData = serializeFormToJSON(newUserForm);
 
@@ -621,7 +624,7 @@
     // Event listener for the Edit User form submission (in the modal)
     const editUserForm = document.getElementById('editUserForm');
     if (editUserForm) {
-        editUserForm.addEventListener('submit', function(event) {
+        editUserForm.addEventListener('submit', function (event) {
             event.preventDefault();
             const userId = document.getElementById('editUserId').value;
             const userData = serializeFormToJSON(editUserForm);
@@ -651,7 +654,7 @@
                 .then(updatedUser => {
                     displayMessage('success', 'User updated successfully!');
                     const modal = bootstrap.Modal.getInstance(editUserModal);
-                    if(modal) modal.hide(); // Close the modal
+                    if (modal) modal.hide(); // Close the modal
                     fetchAndDisplayUsers(); // Refresh the user table
                 })
                 .catch(error => {
@@ -665,7 +668,7 @@
     // Event listener for the Delete User form submission (in the modal)
     const deleteUserForm = document.getElementById('deleteUserForm');
     if (deleteUserForm) {
-        deleteUserForm.addEventListener('submit', function(event) {
+        deleteUserForm.addEventListener('submit', function (event) {
             event.preventDefault();
             const userId = document.getElementById('deleteUserId').value;
 
@@ -693,7 +696,7 @@
                 .then(() => { // .then() after response.ok handles success
                     displayMessage('success', 'User deleted successfully!');
                     const modal = bootstrap.Modal.getInstance(deleteUserModal);
-                    if(modal) modal.hide(); // Close the modal
+                    if (modal) modal.hide(); // Close the modal
                     fetchAndDisplayUsers(); // Refresh the user table
                 })
                 .catch(error => {
@@ -774,7 +777,7 @@
                     modalTitle.textContent = 'Edit User: Error';
                     displayMessage('error', 'Failed to load user data for editing.'); // Show main alert
                     const modal = bootstrap.Modal.getInstance(editUserModal);
-                    if(modal) modal.hide(); // Close modal on error
+                    if (modal) modal.hide(); // Close modal on error
                 });
         });
     }
@@ -823,7 +826,7 @@
                     console.error('Error fetching user for delete modal:', error);
                     displayMessage('error', 'Failed to load user data for deletion.'); // Show main alert
                     const modal = bootstrap.Modal.getInstance(deleteUserModal);
-                    if(modal) modal.hide(); // Close modal on error
+                    if (modal) modal.hide(); // Close modal on error
                 });
         });
     }
@@ -833,7 +836,7 @@
 
     const userTableBody = document.getElementById('userTableBody');
     if (userTableBody) { // Ensure tbody exists
-        userTableBody.addEventListener('click', function(event) {
+        userTableBody.addEventListener('click', function (event) {
             const target = event.target;
 
             // Check if the clicked element is an Edit button
