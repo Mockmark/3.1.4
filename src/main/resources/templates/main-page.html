@@ -419,11 +419,6 @@
         if (alertDiv) {
             alertDiv.style.display = 'block'; // Set display first
             alertDiv.classList.add('show'); // <-- ADD THIS LINE to make it visible via CSS transition/rule
-            // Bootstrap's fade and show classes are usually handled automatically
-            // when the element's display style changes. // This comment can be updated or removed
-            // If not, you might need to manually add/remove 'show' and 'fade' classes
-            // or rely on Bootstrap's JS for dismissible alerts.
-            // Ensure your alert divs have the 'alert-dismissible fade show' classes. // This HTML comment can be updated or removed
         } else {
             // Fallback if alert divs are not found
             alert(type.toUpperCase() + ': ' + message);
@@ -508,7 +503,6 @@
 
         return row;
     }
-
 
     // Function to fetch and display users (Updated to use renderUserRow)
     function fetchAndDisplayUsers() {
@@ -603,7 +597,6 @@
                 headers: headers, // Use the headers object
                 body: JSON.stringify(userData)
             })
-                // ... (rest of the .then().catch() block) ...
                 .then(async response => { // Use async to await response.json() later if needed
                     if (response.ok) { // Check for success status codes (2xx)
                         return response.json(); // Parse the response body (the created user)
@@ -647,7 +640,6 @@
                 headers: headers, // Use the headers object
                 body: JSON.stringify(userData)
             })
-                // ... (rest of the .then().catch() block) ...
                 .then(async response => {
                     if (response.ok) { // Check for success status codes (2xx)
                         return response.json(); // Parse the response body (the updated user)
@@ -688,7 +680,6 @@
                 headers: headers // Use the headers object
                 // DELETE typically does not have a request body
             })
-                // ... (rest of the .then().catch() block) ...
                 .then(async response => {
                     if (response.ok) { // Check for success status codes (2xx, including 204 No Content)
                         // No response body expected for 204 No Content
@@ -843,11 +834,7 @@
         });
     }
 
-    // Initial check to hide Thymeleaf rendered messages on page load if they exist
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOMContentLoaded fired'); // Keep for now
-        console.log('Code inside consolidated DOMContentLoaded callback executed'); // Keep for now
-
         // 1. Get references to the alert elements
         const successAlert = document.getElementById('successMessage');
         const errorAlert = document.getElementById('errorMessage');
@@ -893,8 +880,6 @@
 
         // Note: Roles for Edit/Delete modals are populated when the modal is shown
     });
-
-
 </script>
 </body>
 </html>
