@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en"> <head>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <title>User Page</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -63,10 +64,12 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item d-flex align-items-center"> <span class="navbar-text me-3 text-white">Username:
-                         <span id="navbarUsername">Loading...</span> with roles: <span id="navbarRoles">Loading...</span> </span>
+                         <span id="navbarUsername">Loading...</span> with roles: <span
+                            id="navbarRoles">Loading...</span> </span>
                 </li>
                 <li class="nav-item">
-                    <form action="/logout" method="post"> <button type="submit" class="btn btn-outline-danger">Logout</button>
+                    <form action="/logout" method="post">
+                        <button type="submit" class="btn btn-outline-danger">Logout</button>
                     </form>
                 </li>
             </ul>
@@ -97,22 +100,29 @@
                     About user
                 </div>
                 <div class="card-body">
-                    <div> <table class="table table-striped table-bordered table-dark">
-                        <thead class="table-dark">
-                        <tr>
-                            <th style="width: 5%;">ID</th>
-                            <th style="width: 20%;">Name</th>
-                            <th style="width: 10%;">Age</th>
-                            <th style="width: 25%;">Email</th>
-                            <th style="width: 20%;">Username</th>
-                            <th style="width: 20%;">Roles</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td id="userInfoId">Loading...</td> <td id="userInfoName">Loading...</td> <td id="userInfoAge">Loading...</td> <td id="userInfoEmail">Loading...</td> <td id="userInfoUsername">Loading...</td> <td id="userInfoRoles">Loading...</td> </tr>
-                        </tbody>
-                    </table>
+                    <div>
+                        <table class="table table-striped table-bordered table-dark">
+                            <thead class="table-dark">
+                            <tr>
+                                <th style="width: 5%;">ID</th>
+                                <th style="width: 20%;">Name</th>
+                                <th style="width: 10%;">Age</th>
+                                <th style="width: 25%;">Email</th>
+                                <th style="width: 20%;">Username</th>
+                                <th style="width: 20%;">Roles</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td id="userInfoId">Loading...</td>
+                                <td id="userInfoName">Loading...</td>
+                                <td id="userInfoAge">Loading...</td>
+                                <td id="userInfoEmail">Loading...</td>
+                                <td id="userInfoUsername">Loading...</td>
+                                <td id="userInfoRoles">Loading...</td>
+                            </tr>
+                            </tbody>
+                        </table>
                     </div>
                     <div id="userInfoNotAvailable" class="alert alert-warning" style="display: none;">
                         User details could not be loaded.
@@ -125,12 +135,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    console.log('User Info Script block started'); // Add initial log
-
     // Function to fetch current user (reusing the logic from main-page.html)
     function fetchCurrentUser() {
-        console.log('Attempting to fetch current user from /api/users/me'); // <-- Use the new endpoint
-        return fetch('/api/users/me') // <-- Call the new endpoint
+        return fetch('/api/users/me')
             .then(response => {
                 if (response.ok) {
                     return response.json();
@@ -146,8 +153,6 @@
 
     // Function to display user info on the page
     function displayUserInfo(user) {
-        console.log('Displaying user info on page:', user);
-
         // Get element references
         const userInfoNameSpan = document.getElementById('userInfoName'); // Name in table
         const userInfoIdTd = document.getElementById('userInfoId');
@@ -158,7 +163,6 @@
         const userInfoRolesTd = document.getElementById('userInfoRoles');
         const userInfoNotAvailableDiv = document.getElementById('userInfoNotAvailable');
         const userInfoContentDiv = document.querySelector('.main-content .card-body > div:not(#userInfoNotAvailable)'); // Select the div containing the table within the card body
-
 
         // Populate the HTML elements with the user data
         if (userInfoNameSpan) userInfoNameSpan.textContent = user.name; // Name in welcome/table
@@ -176,29 +180,23 @@
 
     // Function to display user info in the navbar (reusing logic from main-page.html)
     function displayNavbarUserInfo(user) {
-        console.log('Displaying user info in navbar:', user);
         const navbarUsernameSpan = document.getElementById('navbarUsername');
         const navbarRolesSpan = document.getElementById('navbarRoles');
         if (navbarUsernameSpan) navbarUsernameSpan.textContent = user.username;
         if (navbarRolesSpan) navbarRolesSpan.textContent = user.roles.map(role => role.name).join(', ');
     }
 
-
     // DOMContentLoaded listener to fetch and display data when the page is ready
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('DOMContentLoaded fired in user-info.html.');
-
         // Fetch and display current user data
         fetchCurrentUser()
             .then(user => {
-                console.log('fetchCurrentUser resolved in user-info.html.');
                 // Display user info in the main content area
                 displayUserInfo(user);
                 // Display user info in the navbar
                 displayNavbarUserInfo(user); // Use the separate function for navbar
             })
-            .catch(error => {
-                console.error('Error fetching or displaying user info:', error);
+            .catch(() => {
                 const userInfoNotAvailableDiv = document.getElementById('userInfoNotAvailable');
                 const userInfoContentDiv = document.querySelector('.main-content .card-body > div:not(#userInfoNotAvailable)');
                 if (userInfoNotAvailableDiv) {
