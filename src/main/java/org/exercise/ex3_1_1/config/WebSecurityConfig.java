@@ -17,8 +17,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.context.SecurityContextRepository;
 
 
@@ -41,11 +41,6 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityContextPersistenceFilter securityContextPersistenceFilter(SecurityContextRepository securityContextRepository) {
-        return new SecurityContextPersistenceFilter(securityContextRepository);
-    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -60,16 +55,17 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                        .sessionFixation().migrateSession()
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(true)
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Session is created if needed
+                        .sessionFixation().migrateSession() // Protects against session fixation attacks
+                        .maximumSessions(1) // Allows only one session per user
+                        .maxSessionsPreventsLogin(true) // Prevents a new login if max sessions reached
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .permitAll()
+                                .logoutUrl("/logout") // Configures the logout URL
+                                .permitAll() // Allows anyone to access the logout URL
+                        // Default logout success URL is usually login page
                 )
-                .addFilterBefore(securityContextPersistenceFilter(securityContextRepository()), LogoutFilter.class)
+                .addFilterBefore(new SecurityContextHolderFilter(securityContextRepository()), LogoutFilter.class)
         ;
         return http.build();
     }

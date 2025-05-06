@@ -4,8 +4,6 @@ import org.exercise.ex3_1_1.model.Role;
 import org.exercise.ex3_1_1.model.User;
 import org.exercise.ex3_1_1.service.RoleService;
 import org.exercise.ex3_1_1.service.ServiceProv;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,7 +18,6 @@ public class UserRestController {
 
     private final ServiceProv userService;
     private final RoleService roleService;
-    private static final Logger logger = LoggerFactory.getLogger(UserRestController.class);
 
     public UserRestController(ServiceProv userService, RoleService roleService) {
         this.userService = userService;
@@ -87,7 +84,6 @@ public class UserRestController {
         }
     }
 
-
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable("id") Long id) {
         try {
@@ -109,39 +105,18 @@ public class UserRestController {
         return new ResponseEntity<>(roles, HttpStatus.OK);
     }
 
-    // Endpoint for any authenticated user (ADMIN or USER) to get their own details
-    // GET /api/users/me
-    @GetMapping("/me") // Endpoint: GET /api/users/me
-    public ResponseEntity<User> getAuthenticatedUser(@AuthenticationPrincipal User currentUser) { // Renamed method for clarity
-        logger.info("Attempting to fetch authenticated user details for /api/users/me"); // Log entry
+    @GetMapping("/me")
+    public ResponseEntity<User> getAuthenticatedUser(@AuthenticationPrincipal User currentUser) {
 
         if (currentUser == null) {
-            logger.warn("Authenticated user principal is null for /api/users/me"); // Log if principal is null
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Should not happen if secured
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
-        logger.info("Authenticated user found: {}", currentUser.getUsername()); // Log the username
-
         try {
-            // IMPORTANT: Ensure password is not sent back
-            // Create a copy or nullify the password on the returned object
-            // Assuming User is a mutable object and nullifying password is safe for this response
             currentUser.setPassword(null); // Always nullify password before sending to frontend
-
-            logger.debug("Password set to null for user: {}", currentUser.getUsername()); // Log password nullification
-
-            // Attempt to return the user object in the response
-            ResponseEntity<User> response = ResponseEntity.ok(currentUser);
-            logger.info("Successfully prepared response for user: {}", currentUser.getUsername()); // Log success
-
-            return response;
-
+            return ResponseEntity.ok(currentUser);
         } catch (Exception e) {
-            // Catch any exceptions during processing (e.g., serialization)
-            logger.error("Error processing /api/users/me for user {}: {}", currentUser.getUsername(), e.getMessage(), e); // Log the error with stack trace
             // Return an Internal Server Error (500) if there's a processing issue
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Or return an error object/message if preferred
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
-
 }
