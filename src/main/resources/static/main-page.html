@@ -571,13 +571,13 @@
         if (navbarUsernameSpan) navbarUsernameSpan.textContent = 'Loading...';
         if (navbarRolesSpan) navbarRolesSpan.textContent = 'Loading...';
 
-        fetch('/api/admin/current-user') // Call your backend API endpoint
+        fetch('/api/admin/me') // Call your backend API endpoint
             .then(response => {
                 if (response.ok) { // Check for success (2xx) status
                     return response.json(); // Parse the JSON response body (the User object)
                 } else if (response.status === 401 || response.status === 403) {
                     // If 401/403, it means the session is not authenticated (unexpected after login, but handle it)
-                    console.warn('User not authenticated for /api/admin/current-user. Redirecting to login.');
+                    console.warn('User not authenticated for /api/admin/me. Redirecting to login.');
                     window.location.href = '/login?expired'; // Redirect to login page
                     return Promise.reject('Not authenticated'); // Stop processing
                 } else {
@@ -602,13 +602,13 @@
     }
     // MODIFIED fetchAndDisplayCurrentUser to return the promise resolving with the user
     function fetchCurrentUser() { // Renamed the fetching logic
-        console.log('Attempting to fetch current user from /api/admin/current-user (inside fetchCurrentUser function)'); // <-- Add this log
-        return fetch('/api/admin/current-user')
+        console.log('Attempting to fetch current user from /api/admin/me (inside fetchCurrentUser function)'); // <-- Add this log
+        return fetch('/api/admin/me')
             .then(response => {
                 if (response.ok) {
                     return response.json();
                 } else if (response.status === 401 || response.status === 403) {
-                    console.warn('User not authenticated for /api/admin/current-user. Redirecting to login.');
+                    console.warn('User not authenticated for /api/admin/me. Redirecting to login.');
                     window.location.href = '/login?expired';
                     return Promise.reject('Not authenticated');
                 } else {

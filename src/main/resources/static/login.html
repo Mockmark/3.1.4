@@ -36,9 +36,9 @@
 </div>
 
 <script>
-    console.log('Script block started'); // This should run now
+    console.log('Script block started');
 
-    // Function to display dynamic messages
+    // Function to display dynamic messages (success or danger alerts)
     function displayMessage(type, message) {
         const container = document.getElementById('messageContainer');
         container.innerHTML = ''; // Clear previous messages
@@ -55,24 +55,28 @@
         // }, 5000); // Remove after 5 seconds
     }
 
+    // Wait for the DOM to be fully loaded before executing script that interacts with DOM elements
     document.addEventListener('DOMContentLoaded', () => {
         console.log('DOMContentLoaded fired');
         const loginForm = document.getElementById('loginForm');
         const usernameInput = document.getElementById('username');
         const passwordInput = document.getElementById('password');
 
-        console.log('Form element found:', loginForm);
+        console.log('Login form element found:', loginForm);
 
-        // Check for logout parameter in URL (if redirected after backend logout)
+        // Check for 'logout' parameter in URL (if redirected after backend logout)
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('logout')) {
             displayMessage('success', 'You have been logged out');
+        } else if (urlParams.has('expired')) { // Check for expired session parameter
+            displayMessage('danger', 'Your session has expired. Please log in again.');
         }
 
+
         if (loginForm) { // Added a check just in case getElementById fails
-            loginForm.addEventListener('submit', async (event) => {
+            loginForm.addEventListener('submit', async (event) => { // Use async function for await keyword
                 console.log('Submit event listener fired');
-                event.preventDefault();
+                event.preventDefault(); // Prevent the browser's default form submission
                 console.log('Default submission prevented');
 
                 const username = usernameInput.value;
@@ -83,7 +87,7 @@
                     password: password
                 };
 
-                console.log('Attempting fetch for /api/login with data:', loginData);
+                console.log('Attempting fetch for /api/login with username:', username); // Log username (not password)
 
                 try {
                     const response = await fetch('/api/login', {
@@ -97,28 +101,49 @@
                     console.log('Fetch response received:', response);
 
                     if (response.ok) {
-                        console.log('Login successful, redirecting');
+                        console.log('Login successful');
+                        // --- NEW: Read the response body (which contains the User object) ---
+                        const authenticatedUser = await response.json();
+                        console.log('Authenticated user data:', authenticatedUser);
+                        // -----------------------------------------------------------------
+
                         displayMessage('success', 'Login successful!');
-                        window.location.href = '/admin/index';
+
+                        // --- NEW: Redirect based on user roles ---
+                        // Check if the user has the ADMIN role by iterating through the roles array
+                        const isAdmin = authenticatedUser.roles.some(role => role.name === 'ADMIN');
+
+                        if (isAdmin) {
+                            console.log('User is ADMIN, redirecting to /admin/index');
+                            window.location.href = '/admin/index';
+                        } else {
+                            // Assuming any user who is authenticated but not ADMIN should go to user home
+                            console.log('User is not ADMIN, redirecting to /user/home');
+                            window.location.href = '/user/home';
+                        }
+                        // -----------------------------------------
 
                     } else {
                         console.log('Login failed, showing message');
-                        const errorBody = await response.text(); // Read error response body
-                        displayMessage('danger', `Login failed: ${errorBody || 'Invalid credentials'}`); // Use error body or a default
-                        passwordInput.value = '';
+                        // Read the response body as text to get potential error messages from the backend
+                        const errorBody = await response.text();
+                        // Display a danger message with the error body from the backend, or a default message
+                        displayMessage('danger', `Login failed: ${errorBody || 'Invalid credentials'}`);
+                        passwordInput.value = ''; // Clear password field
                     }
 
                 } catch (error) {
                     console.error('Login request failed:', error);
                     displayMessage('danger', 'An error occurred during login.');
-                    passwordInput.value = '';
+                    passwordInput.value = ''; // Clear password field
                 }
             });
         } else {
-            console.error('Login form element not found!'); // Log if the form isn't found
+            console.error('Login form element with ID "loginForm" not found!');
         }
     });
 </script>
 
 </body>
 </html>
+    

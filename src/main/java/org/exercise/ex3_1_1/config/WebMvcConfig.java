@@ -19,6 +19,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         // You might also need to map the root "/" if you want it to go to login.html
         registry.addViewController("/").setViewName("forward:/login.html");
+
+        // --- NEW: Map /user/home to user-info.html ---
+        registry.addViewController("/user/home").setViewName("forward:/user-info.html");
+        // ---------------------------------------------
     }
 
     // You can keep other WebMvcConfigurer methods if you have them (e.g., addResourceHandlers)

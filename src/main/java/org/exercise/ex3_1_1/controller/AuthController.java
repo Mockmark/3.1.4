@@ -1,7 +1,7 @@
-// src/main/java/org/exercise/ex3_1_1/controller/AuthController.java
 package org.exercise.ex3_1_1.controller;
 
-import org.exercise.ex3_1_1.dto.LoginRequest; // Import the DTO
+import org.exercise.ex3_1_1.model.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,48 +9,45 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController // Mark this class as a REST controller
+@RestController
+@RequestMapping("/api") // Or your API base path
 public class AuthController {
 
-    // Inject the AuthenticationManager bean provided by Spring Security
     private final AuthenticationManager authenticationManager;
 
-    // Constructor for dependency injection
     public AuthController(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
     }
 
-    @PostMapping("/api/login") // <--- This maps POST requests to /api/login
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    @PostMapping("/login")
+    public ResponseEntity<?> authenticateUser(@RequestBody User loginUser) {
         try {
-            // 1. Create an Authentication object with the provided credentials
+            // Authenticate the user using the provided credentials
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken( // Uses the standard token for username/password
-                            loginRequest.getUsername(), // Get username from the request body DTO
-                            loginRequest.getPassword()    // Get password from the request body DTO
-                    )
+                    new UsernamePasswordAuthenticationToken(loginUser.getUsername(), loginUser.getPassword())
             );
 
-            // 2. If authentication is successful, set the Authentication object in the SecurityContextHolder
-            // This establishes the security context for the current request/session
+            // Set the authenticated Authentication object in the SecurityContextHolder
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // 3. Return a success response
-            // For a simple API, you can just return a 200 OK response.
-            // If you were using tokens (like JWT), you would generate and return the token here.
-            return ResponseEntity.ok("User authenticated successfully"); // You could return user details or a token instead
+            // Get the authenticated user principal from the Authentication object
+            User authenticatedUser = (User) authentication.getPrincipal();
+
+            // Nullify password before returning to the frontend for security
+            authenticatedUser.setPassword(null);
+
+            // Return the authenticated user object (including roles) in the response body with HttpStatus.OK
+            return ResponseEntity.ok(authenticatedUser);
 
         } catch (Exception e) {
-            // 4. If authentication fails (e.g., incorrect username/password)
-            // Return an Unauthorized status (401)
-            return ResponseEntity.status(401).body("Authentication failed");
+            // Log the authentication failure on the server side for debugging
+            e.printStackTrace(); // Or use a proper logger (e.g., LoggerFactory.getLogger(AuthController.class))
+            // Return an Unauthorized status and a simple error message in the response body
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
     }
-
-    // You might also add an API endpoint for logout if needed, e.g., a POST to /logout
-    // Spring Security's default LogoutFilter handles /logout by clearing the security context/session.
-    // If you need a custom API logout response, you could define a @PostMapping("/api/logout")
-    // and potentially trigger the logout programmatically, though often the default /logout endpoint is sufficient for APIs relying on sessions.
 }
+    

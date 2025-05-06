@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
+<html lang="en"> <head>
     <meta charset="UTF-8">
     <title>User Page</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -63,16 +62,11 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item d-flex align-items-center" th:if="${userHome != null}">
-                     <span class="navbar-text me-3 text-white">Username: <span th:text="${userHome.username}"></span> with roles:
-                        <span th:each="role, iterStat : ${userHome.roles}">
-                            <span th:text="${role.name}">ROLE</span><th:block th:if="!${iterStat.last}">, </th:block>
-                        </span>
-                     </span>
+                <li class="nav-item d-flex align-items-center"> <span class="navbar-text me-3 text-white">Username:
+                         <span id="navbarUsername">Loading...</span> with roles: <span id="navbarRoles">Loading...</span> </span>
                 </li>
                 <li class="nav-item">
-                    <form th:action="@{/logout}" method="post">
-                        <button type="submit" class="btn btn-outline-danger">Logout</button>
+                    <form action="/logout" method="post"> <button type="submit" class="btn btn-outline-danger">Logout</button>
                     </form>
                 </li>
             </ul>
@@ -103,36 +97,24 @@
                     About user
                 </div>
                 <div class="card-body">
-                    <div th:if="${userHome != null}">
-                        <table class="table table-striped table-bordered table-dark">
-                            <thead class="table-dark">
-                            <tr>
-                                <th style="width: 5%;">ID</th>
-                                <th style="width: 20%;">Name</th>
-                                <th style="width: 10%;">Age</th>
-                                <th style="width: 25%;">Email</th>
-                                <th style="width: 20%;">Username</th>
-                                <th style="width: 20%;">Roles</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td th:text="${userHome.id}"></td>
-                                <td th:text="${userHome.name}"></td>
-                                <td th:text="${userHome.age}"></td>
-                                <td th:text="${userHome.email}"></td>
-                                <td th:text="${userHome.username}"></td>
-                                <td>
-                                    <span th:each="role, iterStat : ${userHome.roles}">
-                                         <span th:text="${role.name}">Roles</span><th:block
-                                            th:if="${!iterStat.last}">, </th:block>
-                                     </span>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                    <div> <table class="table table-striped table-bordered table-dark">
+                        <thead class="table-dark">
+                        <tr>
+                            <th style="width: 5%;">ID</th>
+                            <th style="width: 20%;">Name</th>
+                            <th style="width: 10%;">Age</th>
+                            <th style="width: 25%;">Email</th>
+                            <th style="width: 20%;">Username</th>
+                            <th style="width: 20%;">Roles</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td id="userInfoId">Loading...</td> <td id="userInfoName">Loading...</td> <td id="userInfoAge">Loading...</td> <td id="userInfoEmail">Loading...</td> <td id="userInfoUsername">Loading...</td> <td id="userInfoRoles">Loading...</td> </tr>
+                        </tbody>
+                    </table>
                     </div>
-                    <div th:if="${userHome == null}" class="alert alert-warning">
+                    <div id="userInfoNotAvailable" class="alert alert-warning" style="display: none;">
                         User details could not be loaded.
                     </div>
                 </div>
@@ -140,6 +122,98 @@
         </main>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    console.log('User Info Script block started'); // Add initial log
+
+    // Function to fetch current user (reusing the logic from main-page.html)
+    function fetchCurrentUser() {
+        console.log('Attempting to fetch current user from /api/users/me'); // <-- Use the new endpoint
+        return fetch('/api/users/me') // <-- Call the new endpoint
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else if (response.status === 401 || response.status === 403) {
+                    console.warn('User not authenticated for /api/users/me. Redirecting to login.');
+                    window.location.href = '/login?expired'; // Redirect to login page
+                    return Promise.reject('Not authenticated');
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+            });
+    }
+
+    // Function to display user info on the page
+    function displayUserInfo(user) {
+        console.log('Displaying user info on page:', user);
+
+        // Get element references
+        const userInfoNameSpan = document.getElementById('userInfoName'); // Name in table
+        const userInfoIdTd = document.getElementById('userInfoId');
+        const userInfoDisplayNameTd = document.getElementById('userInfoName'); // Name in welcome (reuse ID or add new) - Corrected to use Name in table ID
+        const userInfoAgeTd = document.getElementById('userInfoAge');
+        const userInfoEmailTd = document.getElementById('userInfoEmail');
+        const userInfoUsernameTd = document.getElementById('userInfoUsername');
+        const userInfoRolesTd = document.getElementById('userInfoRoles');
+        const userInfoNotAvailableDiv = document.getElementById('userInfoNotAvailable');
+        const userInfoContentDiv = document.querySelector('.main-content .card-body > div:not(#userInfoNotAvailable)'); // Select the div containing the table within the card body
+
+
+        // Populate the HTML elements with the user data
+        if (userInfoNameSpan) userInfoNameSpan.textContent = user.name; // Name in welcome/table
+        if (userInfoIdTd) userInfoIdTd.textContent = user.id;
+        if (userInfoDisplayNameTd) userInfoDisplayNameTd.textContent = user.name; // Use the same ID for consistency
+        if (userInfoAgeTd) userInfoAgeTd.textContent = user.age;
+        if (userInfoEmailTd) userInfoEmailTd.textContent = user.email;
+        if (userInfoUsernameTd) userInfoUsernameTd.textContent = user.username;
+        if (userInfoRolesTd) userInfoRolesTd.textContent = user.roles.map(role => role.name).join(', ');
+
+        // Show the user info content, hide not available message
+        if (userInfoContentDiv) userInfoContentDiv.style.display = 'block';
+        if (userInfoNotAvailableDiv) userInfoNotAvailableDiv.style.display = 'none'; // Ensure hidden if data is displayed
+    }
+
+    // Function to display user info in the navbar (reusing logic from main-page.html)
+    function displayNavbarUserInfo(user) {
+        console.log('Displaying user info in navbar:', user);
+        const navbarUsernameSpan = document.getElementById('navbarUsername');
+        const navbarRolesSpan = document.getElementById('navbarRoles');
+        if (navbarUsernameSpan) navbarUsernameSpan.textContent = user.username;
+        if (navbarRolesSpan) navbarRolesSpan.textContent = user.roles.map(role => role.name).join(', ');
+    }
+
+
+    // DOMContentLoaded listener to fetch and display data when the page is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOMContentLoaded fired in user-info.html.');
+
+        // Fetch and display current user data
+        fetchCurrentUser()
+            .then(user => {
+                console.log('fetchCurrentUser resolved in user-info.html.');
+                // Display user info in the main content area
+                displayUserInfo(user);
+                // Display user info in the navbar
+                displayNavbarUserInfo(user); // Use the separate function for navbar
+            })
+            .catch(error => {
+                console.error('Error fetching or displaying user info:', error);
+                const userInfoNotAvailableDiv = document.getElementById('userInfoNotAvailable');
+                const userInfoContentDiv = document.querySelector('.main-content .card-body > div:not(#userInfoNotAvailable)');
+                if (userInfoNotAvailableDiv) {
+                    userInfoNotAvailableDiv.style.display = 'block'; // Show 'not available' message
+                }
+                if (userInfoContentDiv) userInfoContentDiv.style.display = 'none'; // Hide content if showing error
+
+                // Also update navbar to show error or default state
+                const navbarUsernameSpan = document.getElementById('navbarUsername');
+                const navbarRolesSpan = document.getElementById('navbarRoles');
+                if (navbarUsernameSpan) navbarUsernameSpan.textContent = 'Error';
+                if (navbarRolesSpan) navbarRolesSpan.textContent = 'Error';
+            });
+    });
+
+</script>
 </body>
 </html>

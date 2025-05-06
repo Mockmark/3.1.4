@@ -60,40 +60,49 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF is disabled
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // CSRF disabled
                 .authorizeHttpRequests(authorize -> authorize
-                        // Permit access to static frontend files and the /login URL
+                        // Permit access to static frontend files and the login URL
                         .requestMatchers("/", "/login", "/index.html", "/login.html", "/css/**", "/js/**", "/images/**", "/error").permitAll()
                         // Permit access to the API login endpoint
                         .requestMatchers("/api/login").permitAll()
+
+                        // --- NEW: Permit authenticated users (USER or ADMIN) to access their own info endpoint ---
+                        .requestMatchers("/api/users/me").authenticated() // Allows any authenticated user (USER or ADMIN by default)
+                        // If you need to restrict it only to specific roles:
+                        // .requestMatchers("/api/users/me").hasAnyRole("USER", "ADMIN")
+                        // -------------------------------------------------------------------------------------
+
                         // Permit access to the static admin page URL for authenticated users
                         .requestMatchers("/admin/index").authenticated() // Ensure this is authenticated() or hasRole('ADMIN')
 
-                        // Require ADMIN role for API endpoints under /api/admin
+                        // Require ADMIN role for API endpoints under /api/admin (including /api/admin/current-user if you reuse it)
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // Require USER or ADMIN role for other API endpoints (if any)
-                        // .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
-                        // All other requests require authentication (this rule comes last)
-                        .anyRequest().authenticated()
-                )
-                // Explicit Session Management Configuration
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Create a session if needed (default, but good to be explicit)
-                        .sessionFixation().migrateSession() // Protect against session fixation attacks (standard practice)
-                        .maximumSessions(1) // Optional: Restrict to one session per user
-                        .maxSessionsPreventsLogin(true) // Optional: Prevent new login if max sessions reached
-                ) // <--- MODIFY THIS BLOCK
-                // Removed formLogin block
 
-                // Configure logout for API backend
+                        // Require ADMIN role for other API endpoints under /api/users (if any, like list all users)
+                        .requestMatchers("/api/users", "/api/users/**").hasRole("ADMIN") // Adjust this if specific /api/users endpoints should be accessible to USER
+
+                        // --- NEW: Permit authenticated users (USER or ADMIN) to access the static user home page ---
+                        .requestMatchers("/user/home").authenticated() // Allows any authenticated user (USER or ADMIN by default)
+                        // If you need to restrict it only to specific roles:
+                        // .requestMatchers("/user/home").hasAnyRole("USER", "ADMIN")
+                        // ---------------------------------------------------------------------------------------
+
+                        // All other requests require authentication (this rule comes last)
+                        .anyRequest().authenticated() // This catches everything else
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionFixation().migrateSession()
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(true)
+                )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .permitAll()
                 )
                 .addFilterBefore(securityContextPersistenceFilter(securityContextRepository()), LogoutFilter.class)
-        //.addFilterAfter(new SecurityContextLoggingFilter(), org.springframework.security.web.context.SecurityContextHolderFilter.class)
-        ; // End http configuration
+        ;
         return http.build();
     }
 
