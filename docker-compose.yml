@@ -1,0 +1,78 @@
+# Specify the Docker Compose file format version (can remove this line in newer versions)
+version: '3.8'
+
+# Define named volumes at the top level
+volumes:
+  # Define a volume named 'mysql_data'
+  # Docker will manage this volume to persist data
+  mysql_data:
+
+# Define the services (containers) that make up your application
+services:
+
+  # Service for the MySQL database
+  mysql:
+    # Use the official MySQL image from Docker Hub
+    image: mysql:latest
+    # Assign a consistent container name (optional but good practice)
+    container_name: mysql-container
+    # Connect this service to the custom network
+    networks:
+      - app-network
+    # Map host port 3307 to container port 3306
+    # This allows you to access MySQL from your host machine on port 3307
+    ports:
+      - "3307:3306"
+    # Set environment variables required by the MySQL image
+    environment:
+      # Set the root password (replace with your actual password)
+      MYSQL_ROOT_PASSWORD: "impish donator versus uncouple bath subside"
+      # Create a database with this name (replace with your actual database name)
+      MYSQL_DATABASE: "db312"
+      # Optional: Create a dedicated user for your application (more secure than root)
+      # MYSQL_USER: "your_app_user"
+      # MYSQL_PASSWORD: "your_app_password"
+    # Mount the named volume to the MySQL data directory inside the container
+    volumes:
+      - mysql_data:/var/lib/mysql # <-- Mount the 'mysql_data' volume here
+    # Add a healthcheck to ensure the database is ready before the app starts
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s       # Check every 5 seconds
+      timeout: 3s        # Timeout after 3 seconds
+      retries: 10        # Retry up to 10 times
+      start_period: 30s  # Wait for 30 seconds before starting health checks
+    # Restart policy
+    restart: unless-stopped
+
+  # Service for your Spring Boot application
+  spring-app:
+    # Use the Docker image you built for your Spring Boot application
+    # Make sure you have built this image using 'docker build -t ex3_1_4 .'
+    image: ex3_1_4
+    # Assign a consistent container name (optional but good practice)
+    container_name: spring-app-container
+    # Connect this service to the custom network
+    networks:
+      - app-network
+    # Map host port 8080 to container port 8080
+    # This allows you to access your Spring Boot application from your host machine
+    ports:
+      - "8080:8080"
+    # Define dependencies - ensures MySQL starts and is healthy before the Spring Boot app
+    depends_on:
+      mysql:
+        condition: service_healthy # Wait for the MySQL healthcheck to pass
+
+    # Restart policy
+    restart: unless-stopped
+
+# Define the custom network
+networks:
+  # Name of the network
+  app-network:
+    # Use the bridge driver for a standard network
+    driver: bridge
+
+# The 'volumes' section at the top level declares the named volumes.
+# The 'volumes' section under each service definition mounts the volumes.
